@@ -238,13 +238,35 @@ export default function App() {
     meter: [] as { id: number; name: string; sn: string }[],
     camera: [] as { id: number; name: string; sn: string }[],
     temp: [
-      { id: 1, name: '并网柜1', sn: '868734070640284', type: '进线' },
-      { id: 2, name: '并网柜2', sn: '868734070640284', type: '出线' },
+      { id: 1, name: '并网柜1', sn: '868734070640284', accessDevices: ['并网柜测温', '上网表'] },
+      { id: 2, name: '并网柜2', sn: '868734070640284', accessDevices: ['并网柜测温', '发电表'] },
     ],
   });
   const [isDeviceModalOpen, setIsDeviceModalOpen] = React.useState(false);
   const [editingDevice, setEditingDevice] = React.useState<any>(null);
   const [deviceFormData, setDeviceFormData] = React.useState<any>({});
+  const toggleAccessDevice = (key: string) => {
+    setDeviceFormData((prev: any) => ({
+      ...prev,
+      accessDevices: prev.accessDevices?.includes(key)
+        ? (prev.accessDevices as string[]).filter((k: string) => k !== key)
+        : [...(prev.accessDevices || []), key],
+    }));
+  };
+  const setIncomingOutgoingLines = (field: 'incomingLines' | 'outgoingLines', value: number) => {
+    const n = Math.max(1, Math.min(20, Number(value) || 1));
+    setDeviceFormData((prev: any) => {
+      const arr = field === 'incomingLines' ? prev.incomingTempChannels : prev.outgoingTempChannels;
+      const currentLen = arr?.length || 1;
+      let newArr = arr ? [...arr] : [{ a: 1, b: 2, c: 3 }];
+      if (n > currentLen) {
+        for (let i = currentLen; i < n; i++) newArr.push({ a: 1, b: 2, c: 3 });
+      } else if (n < currentLen) {
+        newArr = newArr.slice(0, n);
+      }
+      return { ...prev, [field]: n, [field === 'incomingLines' ? 'incomingTempChannels' : 'outgoingTempChannels']: newArr };
+    });
+  };
   const [alarmConfigs, setAlarmConfigs] = React.useState([
     { id: 1, station: '宁波海曙光伏电站', point: '并网柜温度', content: '并网柜温度过高告警', condition: '温度 > 75℃', method: '短信, 平台' },
     { id: 2, station: '宁波鄞州光伏电站', point: '电流不平衡率', content: '电流不平衡率超标', condition: '不平衡率 > 15%', method: '平台' },
@@ -268,15 +290,49 @@ export default function App() {
     );
   };
 
+  const defaultGatewayForm = {
+    accessDevices: [] as string[],
+    gridMeterCount: 1,
+    gridMeterRatio: 1,
+    genMeterCount: 1,
+    genMeterRatio: 1,
+    pt100Count: 1,
+    pt100List: [{ address: '', channels: 4 as 4 | 8 | 16 }] as { address: string; channels: 4 | 8 | 16 }[],
+    incomingLines: 1,
+    outgoingLines: 1,
+    incomingTempChannels: [{ a: 1, b: 2, c: 3 }],
+    outgoingTempChannels: [{ a: 1, b: 2, c: 3 }],
+  };
+  const setPt100Count = (n: number) => {
+    const count = Math.max(1, Math.min(20, n));
+    setDeviceFormData((prev: any) => {
+      const list = prev.pt100List || [{ address: '', channels: 4 }];
+      const currentLen = list.length;
+      let newList = [...list];
+      if (count > currentLen) {
+        for (let i = currentLen; i < count; i++) newList.push({ address: '', channels: 4 });
+      } else if (count < currentLen) {
+        newList = newList.slice(0, count);
+      }
+      return { ...prev, pt100Count: count, pt100List: newList };
+    });
+  };
   const handleAddDevice = () => {
     setEditingDevice(null);
-    setDeviceFormData({});
+    setDeviceFormData({ ...defaultGatewayForm });
     setIsDeviceModalOpen(true);
   };
 
   const handleEditDevice = (device: any) => {
     setEditingDevice(device);
-    setDeviceFormData(device);
+    setDeviceFormData({
+      ...defaultGatewayForm,
+      ...device,
+      accessDevices: device.accessDevices || [],
+      pt100List: device.pt100List?.length ? device.pt100List : defaultGatewayForm.pt100List,
+      incomingTempChannels: device.incomingTempChannels?.length ? device.incomingTempChannels : defaultGatewayForm.incomingTempChannels,
+      outgoingTempChannels: device.outgoingTempChannels?.length ? device.outgoingTempChannels : defaultGatewayForm.outgoingTempChannels,
+    });
     setIsDeviceModalOpen(true);
   };
 
@@ -544,12 +600,12 @@ export default function App() {
               {/* 实时数据概览 - 一目了然 */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
-                    <Zap size={24} className="text-blue-600" />
+                  <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center flex-shrink-0">
+                    <Thermometer size={24} className="text-orange-600" />
                   </div>
                   <div className="min-w-0">
-                    <div className="text-[11px] text-gray-400 uppercase tracking-wider font-medium">当前总功率</div>
-                    <div className="text-xl font-bold font-mono text-blue-600">87.4 kW</div>
+                    <div className="text-[11px] text-gray-400 uppercase tracking-wider font-medium">最高温</div>
+                    <div className="text-xl font-bold font-mono text-orange-600">51.6 °C</div>
                   </div>
                 </div>
                 <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex items-center gap-4">
@@ -600,7 +656,7 @@ export default function App() {
                     </select>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <StatItem label="逆变器数量" value="5" unit="台" icon={Activity} color="bg-blue-500" />
+                    <StatItem label="当前状态" value={selectedStation.status === 'normal' ? '正常' : selectedStation.status === 'alarm' ? '异常' : '离线'} unit="" icon={Activity} color={selectedStation.status === 'normal' ? 'bg-green-500' : selectedStation.status === 'alarm' ? 'bg-amber-500' : 'bg-gray-400'} />
                     <StatItem label="当前功率" value={String(selectedStation.power)} unit="kW" icon={Zap} color="bg-cyan-500" />
                   </div>
                 </div>
@@ -613,7 +669,7 @@ export default function App() {
                     <div key={inv} className="p-3 border border-gray-100 rounded-lg bg-gray-50/30">
                       <div className="text-xs font-bold text-gray-600 mb-3 flex items-center gap-1">
                         <Thermometer size={14} className="text-red-500" />
-                        #{inv} 逆变器
+                        {inv === 5 ? '出线温度' : `#${inv} 进线温度`}
                       </div>
                       <div className="space-y-2">
                         {['A', 'B', 'C'].map((phase) => (
@@ -738,7 +794,8 @@ export default function App() {
                   <div className="flex items-center bg-gray-100 rounded-lg p-1">
                     <button className="px-3 py-1.5 text-xs font-bold bg-white rounded shadow-sm text-blue-600">全部</button>
                     <button className="px-3 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700">温度异常</button>
-                    <button className="px-3 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700">不平衡</button>
+                    <button className="px-3 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700">电流不平衡</button>
+                    <button className="px-3 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700">电压不平衡</button>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -843,7 +900,7 @@ export default function App() {
                     </ResponsiveContainer>
                   </div>
                 </Card>
-                <Card title="三相不平衡排行榜 (Top 5)" extra={<span className="text-[10px] text-gray-400">指导运维精准排查</span>}>
+                <Card title="三相电流不平衡排行榜 (Top 5)" extra={<span className="text-[10px] text-gray-400">指导运维精准排查</span>}>
                   <div className="h-[200px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={unbalanceRanking} layout="vertical" margin={{ left: 40 }}>
@@ -870,13 +927,14 @@ export default function App() {
                   <input type="date" defaultValue="2026-03-08" className="text-xs border border-gray-200 rounded px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500">设备筛选:</span>
+                  <span className="text-xs text-gray-500">线缆筛选:</span>
                   <select className="text-xs border border-gray-200 rounded px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
-                    <option>#1 逆变器</option>
-                    <option>#2 逆变器</option>
-                    <option>#3 逆变器</option>
-                    <option>#4 逆变器</option>
-                    <option>#5 逆变器</option>
+                    <option>#1 进线</option>
+                    <option>#2 进线</option>
+                    <option>#3 进线</option>
+                    <option>#4 进线</option>
+                    <option>#5 进线</option>
+                    <option>出线</option>
                   </select>
                 </div>
                 <div className="flex items-center gap-4 ml-2">
@@ -1419,9 +1477,9 @@ export default function App() {
                     <thead>
                       <tr className="bg-gray-50 text-gray-500 border-b border-gray-100">
                         <th className="px-4 py-3 text-left font-medium">序号</th>
-                        <th className="px-4 py-3 text-left font-medium">{deviceTab === 'temp' ? '并网柜名称' : '名称'}</th>
+                        <th className="px-4 py-3 text-left font-medium">{deviceTab === 'temp' ? '网关名称' : '名称'}</th>
                         <th className="px-4 py-3 text-left font-medium">网关SN</th>
-                        {deviceTab === 'temp' && <th className="px-4 py-3 text-left font-medium">测温类型</th>}
+                        {deviceTab === 'temp' && <th className="px-4 py-3 text-left font-medium">接入设备</th>}
                         <th className="px-4 py-3 text-left font-medium">操作</th>
                       </tr>
                     </thead>
@@ -1431,7 +1489,13 @@ export default function App() {
                           <td className="px-4 py-3 text-gray-500">{idx + 1}</td>
                           <td className="px-4 py-3 font-medium text-gray-700">{device.name}</td>
                           <td className="px-4 py-3 text-gray-600">{device.sn}</td>
-                          {deviceTab === 'temp' && <td className="px-4 py-3 text-gray-600">{device.type}</td>}
+                          {deviceTab === 'temp' && (
+                            <td className="px-4 py-3 text-gray-600">
+                              {device.accessDevices && Array.isArray(device.accessDevices) && device.accessDevices.length > 0
+                                ? device.accessDevices.join('，')
+                                : device.type || '-'}
+                            </td>
+                          )}
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-3">
                               <button 
@@ -1754,9 +1818,9 @@ export default function App() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden relative z-10"
+              className={cn("bg-white rounded-xl shadow-2xl w-full overflow-hidden relative z-10 max-h-[90vh] flex flex-col", deviceTab === 'temp' ? "max-w-2xl" : "max-w-md")}
             >
-              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
                 <h3 className="font-bold text-gray-800">{editingDevice ? '编辑' : '添加'}{
                   deviceTab === 'temp' ? '并网柜网关' : '设备'
                 }</h3>
@@ -1767,42 +1831,251 @@ export default function App() {
                   <X size={20} className="text-gray-400" />
                 </button>
               </div>
-              <div className="p-6 space-y-4">
-                <div className="space-y-2">
-                  <label className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">
-                    {deviceTab === 'temp' ? '并网柜名称' : '名称'}
-                  </label>
-                  <input 
-                    type="text" 
-                    value={deviceFormData.name || ''}
-                    onChange={(e) => setDeviceFormData({ ...deviceFormData, name: e.target.value })}
-                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">网关SN</label>
-                  <input 
-                    type="text" 
-                    value={deviceFormData.sn || ''}
-                    onChange={(e) => setDeviceFormData({ ...deviceFormData, sn: e.target.value })}
-                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                  />
-                </div>
-                {deviceTab === 'temp' && (
+              <div className="p-6 space-y-6 overflow-y-auto flex-1 min-h-0">
+                {/* 基本信息 */}
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-gray-700 border-b border-gray-100 pb-2">基本信息</h4>
                   <div className="space-y-2">
-                    <label className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">测温类型</label>
-                    <select 
-                      value={deviceFormData.type || '进线'}
-                      onChange={(e) => setDeviceFormData({ ...deviceFormData, type: e.target.value })}
+                    <label className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">网关名称</label>
+                    <input 
+                      type="text" 
+                      value={deviceFormData.name || ''}
+                      onChange={(e) => setDeviceFormData({ ...deviceFormData, name: e.target.value })}
+                      placeholder="请输入网关名称"
                       className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                    >
-                      <option value="进线">进线</option>
-                      <option value="出线">出线</option>
-                    </select>
+                    />
                   </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">网关SN</label>
+                    <input 
+                      type="text" 
+                      value={deviceFormData.sn || ''}
+                      onChange={(e) => setDeviceFormData({ ...deviceFormData, sn: e.target.value })}
+                      placeholder="请输入网关SN"
+                      className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                    />
+                  </div>
+                </div>
+
+                {deviceTab === 'temp' ? (
+                  <>
+                    {/* 接入设备 */}
+                    <div className="space-y-4">
+                      <h4 className="text-xs font-bold text-gray-700 border-b border-gray-100 pb-2">接入设备</h4>
+                      <div className="flex flex-wrap gap-4">
+                        {['并网柜测温', '上网表', '发电表'].map((key) => (
+                          <label key={key} className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={(deviceFormData.accessDevices || []).includes(key)}
+                              onChange={() => toggleAccessDevice(key)}
+                              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <span className="text-sm text-gray-700">{key}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 上网表 */}
+                    {(deviceFormData.accessDevices || []).includes('上网表') && (
+                      <div className="space-y-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                        <h4 className="text-xs font-bold text-gray-700">上网表</h4>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <label className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">电表数量</label>
+                            <input
+                              type="number"
+                              min={1}
+                              value={deviceFormData.gridMeterCount ?? 1}
+                              onChange={(e) => setDeviceFormData({ ...deviceFormData, gridMeterCount: Number(e.target.value) || 1 })}
+                              className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">倍率</label>
+                            <input
+                              type="number"
+                              min={0.01}
+                              step={0.01}
+                              value={deviceFormData.gridMeterRatio ?? 1}
+                              onChange={(e) => setDeviceFormData({ ...deviceFormData, gridMeterRatio: Number(e.target.value) || 1 })}
+                              className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 发电表 */}
+                    {(deviceFormData.accessDevices || []).includes('发电表') && (
+                      <div className="space-y-4 p-4 bg-amber-50/50 rounded-xl border border-amber-100">
+                        <h4 className="text-xs font-bold text-gray-700">发电表</h4>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <label className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">电表数量</label>
+                            <input
+                              type="number"
+                              min={1}
+                              value={deviceFormData.genMeterCount ?? 1}
+                              onChange={(e) => setDeviceFormData({ ...deviceFormData, genMeterCount: Number(e.target.value) || 1 })}
+                              className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">倍率</label>
+                            <input
+                              type="number"
+                              min={0.01}
+                              step={0.01}
+                              value={deviceFormData.genMeterRatio ?? 1}
+                              onChange={(e) => setDeviceFormData({ ...deviceFormData, genMeterRatio: Number(e.target.value) || 1 })}
+                              className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 并网柜测温 */}
+                    {(deviceFormData.accessDevices || []).includes('并网柜测温') && (
+                      <div className="space-y-4 p-4 bg-blue-50/50 rounded-xl border border-blue-100">
+                        <h4 className="text-xs font-bold text-gray-700">并网柜测温</h4>
+                        <div className="space-y-2">
+                          <label className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">PT100 变送器数量</label>
+                          <input
+                            type="number"
+                            min={1}
+                            max={20}
+                            value={deviceFormData.pt100Count ?? 1}
+                            onChange={(e) => setPt100Count(Number(e.target.value) || 1)}
+                            className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                          />
+                        </div>
+                        <div className="space-y-3">
+                          <div className="text-[10px] text-gray-600 font-bold">各变送器地址及路数</div>
+                          <div className="space-y-2">
+                            {(deviceFormData.pt100List || [{ address: '', channels: 4 }]).map((item: { address: string; channels: 4 | 8 | 16 }, idx: number) => (
+                              <div key={'pt100-' + idx} className="grid grid-cols-[1fr_120px] gap-3 items-end rounded-lg border border-gray-100 bg-white p-3">
+                                <div className="space-y-1">
+                                  <label className="text-[10px] text-gray-500">变送器{idx + 1} 地址</label>
+                                  <input
+                                    type="text"
+                                    value={item.address}
+                                    onChange={(e) => setDeviceFormData((p: any) => ({
+                                      ...p,
+                                      pt100List: p.pt100List.map((t: any, i: number) => i === idx ? { ...t, address: e.target.value } : t)
+                                    }))}
+                                    placeholder="请输入地址"
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                  />
+                                </div>
+                                <div className="space-y-1">
+                                  <label className="text-[10px] text-gray-500">几路变送器</label>
+                                  <select
+                                    value={item.channels}
+                                    onChange={(e) => setDeviceFormData((p: any) => ({
+                                      ...p,
+                                      pt100List: p.pt100List.map((t: any, i: number) => i === idx ? { ...t, channels: Number(e.target.value) as 4 | 8 | 16 } : t)
+                                    }))}
+                                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                  >
+                                    <option value={4}>4 路</option>
+                                    <option value={8}>8 路</option>
+                                    <option value={16}>16 路</option>
+                                  </select>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <label className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">进线数（逆变器数）</label>
+                            <input
+                              type="number"
+                              min={1}
+                              max={20}
+                              value={deviceFormData.incomingLines ?? 1}
+                              onChange={(e) => setIncomingOutgoingLines('incomingLines', Number(e.target.value))}
+                              className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">出线数</label>
+                            <input
+                              type="number"
+                              min={1}
+                              max={20}
+                              value={deviceFormData.outgoingLines ?? 1}
+                              onChange={(e) => setIncomingOutgoingLines('outgoingLines', Number(e.target.value))}
+                              className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                            />
+                          </div>
+                        </div>
+                        {/* 进线 ABC 三相变送器路数 */}
+                        <div className="space-y-3">
+                          <div className="text-[10px] text-gray-600 font-bold">进线 · 三相线缆对应变送器第几路温度传感器</div>
+                          <div className="space-y-2">
+                            {(deviceFormData.incomingTempChannels || [{ a: 1, b: 2, c: 3 }]).map((ch: { a: number; b: number; c: number }, idx: number) => (
+                              <div key={'in-' + idx} className="grid grid-cols-4 gap-2 items-center rounded-lg border border-gray-100 bg-white p-2">
+                                <span className="text-xs font-medium text-gray-600 col-span-1">进线{idx + 1}</span>
+                                <div className="col-span-1">
+                                  <label className="text-[10px] text-gray-400 block">A相第几路</label>
+                                  <input type="number" min={1} value={ch.a} onChange={(e) => setDeviceFormData((p: any) => ({ ...p, incomingTempChannels: p.incomingTempChannels.map((c: any, i: number) => i === idx ? { ...c, a: Number(e.target.value) || 1 } : c) }))} className="w-full px-2 py-1 text-xs border border-gray-200 rounded" />
+                                </div>
+                                <div className="col-span-1">
+                                  <label className="text-[10px] text-gray-400 block">B相第几路</label>
+                                  <input type="number" min={1} value={ch.b} onChange={(e) => setDeviceFormData((p: any) => ({ ...p, incomingTempChannels: p.incomingTempChannels.map((c: any, i: number) => i === idx ? { ...c, b: Number(e.target.value) || 1 } : c) }))} className="w-full px-2 py-1 text-xs border border-gray-200 rounded" />
+                                </div>
+                                <div className="col-span-1">
+                                  <label className="text-[10px] text-gray-400 block">C相第几路</label>
+                                  <input type="number" min={1} value={ch.c} onChange={(e) => setDeviceFormData((p: any) => ({ ...p, incomingTempChannels: p.incomingTempChannels.map((c: any, i: number) => i === idx ? { ...c, c: Number(e.target.value) || 1 } : c) }))} className="w-full px-2 py-1 text-xs border border-gray-200 rounded" />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        {/* 出线 ABC 三相变送器路数 */}
+                        <div className="space-y-3">
+                          <div className="text-[10px] text-gray-600 font-bold">出线 · 三相线缆对应变送器第几路温度传感器</div>
+                          <div className="space-y-2">
+                            {(deviceFormData.outgoingTempChannels || [{ a: 1, b: 2, c: 3 }]).map((ch: { a: number; b: number; c: number }, idx: number) => (
+                              <div key={'out-' + idx} className="grid grid-cols-4 gap-2 items-center rounded-lg border border-gray-100 bg-white p-2">
+                                <span className="text-xs font-medium text-gray-600 col-span-1">出线{idx + 1}</span>
+                                <div className="col-span-1">
+                                  <label className="text-[10px] text-gray-400 block">A相第几路</label>
+                                  <input type="number" min={1} value={ch.a} onChange={(e) => setDeviceFormData((p: any) => ({ ...p, outgoingTempChannels: p.outgoingTempChannels.map((c: any, i: number) => i === idx ? { ...c, a: Number(e.target.value) || 1 } : c) }))} className="w-full px-2 py-1 text-xs border border-gray-200 rounded" />
+                                </div>
+                                <div className="col-span-1">
+                                  <label className="text-[10px] text-gray-400 block">B相第几路</label>
+                                  <input type="number" min={1} value={ch.b} onChange={(e) => setDeviceFormData((p: any) => ({ ...p, outgoingTempChannels: p.outgoingTempChannels.map((c: any, i: number) => i === idx ? { ...c, b: Number(e.target.value) || 1 } : c) }))} className="w-full px-2 py-1 text-xs border border-gray-200 rounded" />
+                                </div>
+                                <div className="col-span-1">
+                                  <label className="text-[10px] text-gray-400 block">C相第几路</label>
+                                  <input type="number" min={1} value={ch.c} onChange={(e) => setDeviceFormData((p: any) => ({ ...p, outgoingTempChannels: p.outgoingTempChannels.map((c: any, i: number) => i === idx ? { ...c, c: Number(e.target.value) || 1 } : c) }))} className="w-full px-2 py-1 text-xs border border-gray-200 rounded" />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <div className="space-y-2">
+                      <label className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">名称</label>
+                      <input type="text" value={deviceFormData.name || ''} onChange={(e) => setDeviceFormData({ ...deviceFormData, name: e.target.value })} className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">网关SN</label>
+                      <input type="text" value={deviceFormData.sn || ''} onChange={(e) => setDeviceFormData({ ...deviceFormData, sn: e.target.value })} className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" />
+                    </div>
+                  </>
                 )}
               </div>
-              <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex gap-3">
+              <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex gap-3 flex-shrink-0">
                 <button 
                   onClick={() => setIsDeviceModalOpen(false)}
                   className="flex-1 py-2 bg-white border border-gray-200 text-gray-600 text-xs font-bold rounded-lg hover:bg-gray-50 transition-colors"
