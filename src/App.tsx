@@ -52,7 +52,7 @@ import { cn } from './lib/utils';
 // --- Types ---
 
 type Tab = 'station' | 'distribution';
-type MenuId = 'whole-station' | 'single-station' | 'alarm-config' | 'alarm-data' | 'temp-curve' | 'unbalance-curve' | 'station-mgmt' | 'device-mgmt';
+type MenuId = 'whole-station' | 'single-station' | 'alarm-config' | 'alarm-data' | 'temp-curve' | 'unbalance-curve' | 'station-mgmt' | 'device-mgmt' | 'clean-plan' | 'clean-task' | 'clean-record';
 
 // --- Mock Data ---
 
@@ -170,6 +170,38 @@ const stationMgmtList = [
   { id: 10, name: '宁波海曙天成装饰厂', type: '工商业屋顶', capacity: '339.76', gridType: '自发自用余额上网', payment: '业主自投', address: '浙江省宁波市海曙区靠近' },
 ];
 
+const cleanPlanListMock = [
+  { id: 1, stationName: '宁波博廷斯电子科技有限公司', person: '鲁杭杰', phone: '15990269019', cycle: '90天', planEndTime: '' },
+  { id: 2, stationName: '宁波市海曙鄞江鑫光塑料厂', person: '鲁杭杰', phone: '15990269019', cycle: '75天', planEndTime: '' },
+  { id: 3, stationName: '宁波尚航科技发展有限公司', person: '鲁杭杰', phone: '15990269019', cycle: '90天', planEndTime: '2026-12-31' },
+  { id: 4, stationName: '宁波奉化正一齿轮厂', person: '鲁杭杰', phone: '15990269019', cycle: '60天', planEndTime: '' },
+  { id: 5, stationName: '宁波奉化曙光电子有限公司', person: '鲁杭杰', phone: '15990269019', cycle: '90天', planEndTime: '' },
+  { id: 6, stationName: '宁波夏达工具有限公司2', person: '鲁杭杰', phone: '15990269019', cycle: '75天', planEndTime: '' },
+  { id: 7, stationName: '宁波四联宏达玻璃有限公司', person: '鲁杭杰', phone: '15990269019', cycle: '90天', planEndTime: '' },
+];
+
+const cleanTaskListMock = [
+  { id: 1, stationName: '宁波博廷斯电子科技有限公司', person: '鲁杭杰', phone: '15990269019', status: '未填写', startTime: '2026-03-13 00:00:00', endTime: '2026-06-11 00:00:00' },
+  { id: 2, stationName: '宁波市海曙鄞江鑫光塑料厂', person: '鲁杭杰', phone: '15990269019', status: '未填写', startTime: '2026-03-13 00:00:00', endTime: '2026-05-27 00:00:00' },
+  { id: 3, stationName: '宁波市汇瑞出口有限公司', person: '鲁杭杰', phone: '15990269019', status: '未填写', startTime: '2026-03-13 00:00:00', endTime: '2026-05-26 00:00:00' },
+  { id: 4, stationName: '宁波市华仁设备磁材切片厂', person: '鲁杭杰', phone: '15990269019', status: '未填写', startTime: '2026-03-12 00:00:00', endTime: '2026-05-26 00:00:00' },
+  { id: 5, stationName: '宁波恒通工贸有限公司', person: '鲁杭杰', phone: '15990269019', status: '未填写', startTime: '2026-03-12 00:00:00', endTime: '2026-05-26 00:00:00' },
+  { id: 6, stationName: '宁波华化兴双机框生产线', person: '鲁杭杰', phone: '15990269019', status: '已填写', startTime: '2026-03-12 00:00:00', endTime: '2026-05-26 00:00:00' },
+];
+
+const cleanRecordListMock = [
+  { id: 1, stationName: '宁波奉化兴发机械配件厂', cleanTime: '2026-03-12', person: '鲁杭杰', cleanPersonnel: ['顾佳兴', '周焱'] },
+  { id: 2, stationName: '宁波市千虹服饰有限公司', cleanTime: '2026-03-12', person: '鲁杭杰', cleanPersonnel: ['鲁杭杰'] },
+  { id: 3, stationName: '宁波博廷斯电子科技有限公司', cleanTime: '2026-03-11', person: '鲁杭杰', cleanPersonnel: ['顾佳兴'] },
+  { id: 4, stationName: '宁波市海曙鄞江鑫光塑料厂', cleanTime: '2026-03-11', person: '鲁杭杰', cleanPersonnel: ['周焱', '鲁杭杰'] },
+  { id: 5, stationName: '宁波尚航科技发展有限公司', cleanTime: '', person: '鲁杭杰', cleanPersonnel: [] },
+  { id: 6, stationName: '宁波奉化正一齿轮厂', cleanTime: '2026-03-10', person: '鲁杭杰', cleanPersonnel: ['顾佳兴'] },
+  { id: 7, stationName: '宁波奉化曙光电子有限公司', cleanTime: '2026-03-10', person: '鲁杭杰', cleanPersonnel: ['15990269019'] },
+  { id: 8, stationName: '宁波夏达工具有限公司2', cleanTime: '2026-03-09', person: '鲁杭杰', cleanPersonnel: ['周焱'] },
+  { id: 9, stationName: '宁波四联宏达玻璃有限公司', cleanTime: '2026-03-09', person: '鲁杭杰', cleanPersonnel: ['鲁杭杰', '顾佳兴'] },
+  { id: 10, stationName: '宁波恒通工贸有限公司', cleanTime: '2026-03-08', person: '鲁杭杰', cleanPersonnel: ['周焱'] },
+];
+
 // --- Components ---
 
 const SidebarItem = ({ icon: Icon, label, active, onClick, hasSubmenu }: { icon: any, label: string, active?: boolean, onClick?: () => void, hasSubmenu?: boolean }) => (
@@ -219,10 +251,10 @@ const StatItem = ({ label, value, unit, icon: Icon, color }: { label: string, va
 // --- Main App ---
 
 export default function App() {
-  const [activeTab, setActiveTab] = React.useState<Tab>('distribution');
-  const [activeMenu, setActiveMenu] = React.useState<MenuId>('whole-station');
+  const [activeTab, setActiveTab] = React.useState<Tab>('ops');
+  const [activeMenu, setActiveMenu] = React.useState<MenuId>('clean-plan');
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
-  const [expandedMenus, setExpandedMenus] = React.useState<string[]>(['data-monitoring', 'alarm-mgmt', 'history-curves', 'comprehensive-mgmt']);
+  const [expandedMenus, setExpandedMenus] = React.useState<string[]>(['smart-ops', 'comprehensive-mgmt']);
   const [isAlarmModalOpen, setIsAlarmModalOpen] = React.useState(false);
   const [isAlarmDetailModalOpen, setIsAlarmDetailModalOpen] = React.useState(false);
   const [isOpLogModalOpen, setIsOpLogModalOpen] = React.useState(false);
@@ -283,6 +315,99 @@ export default function App() {
     { id: 2, time: '2026-03-08 09:30:15', action: '远程分闸', operator: '运维人员1' },
     { id: 3, time: '2026-03-07 22:10:05', action: '远程合闸', operator: '管理员' },
   ]);
+  const [cleanPlanList, setCleanPlanList] = React.useState(cleanPlanListMock);
+  const [selectedCleanPlanIds, setSelectedCleanPlanIds] = React.useState<number[]>([]);
+  const [isCleanPlanFormOpen, setIsCleanPlanFormOpen] = React.useState(false);
+  const [cleanPlanForm, setCleanPlanForm] = React.useState({
+    cycle: 1,
+    firstExecTime: '',
+    endTimeType: 'never' as 'never' | 'specified',
+    endTime: '',
+    reminder: '周期结束前',
+    totalCount: 1,
+    station: '',
+    person: '',
+    phone: '',
+    extraReminder: '',
+  });
+  const [cleanPlanTaskForm, setCleanPlanTaskForm] = React.useState({
+    dirtyLevel: '' as '' | '轻微' | '中等' | '严重',
+    pollutant: '' as '' | '积灰' | '鸟粪' | '泥沙' | '油污' | '其他',
+    effect: '达标' as '达标' | '未达标',
+    effectReason: '',
+    componentDamaged: false,
+    otherAbnormal: false,
+  });
+  const [cleanTaskList] = React.useState(cleanTaskListMock);
+  const [selectedCleanTaskIds, setSelectedCleanTaskIds] = React.useState<number[]>([]);
+  const [isCleanTaskFormOpen, setIsCleanTaskFormOpen] = React.useState(false);
+  const [selectedCleanTaskId, setSelectedCleanTaskId] = React.useState<number | null>(null);
+  const [cleanTaskFormData, setCleanTaskFormData] = React.useState({
+    cleanIndex: undefined as number | undefined,
+    dirtyLevel: '' as '' | '轻微' | '中等' | '严重',
+    pollutant: '' as '' | '积灰' | '鸟粪' | '泥沙' | '油污' | '其他',
+    pollutantOther: '',
+    effect: '达标' as '达标' | '未达标',
+    effectReason: '',
+    componentDamaged: false,
+    damageSerial: '',
+    damageBlock: '',
+    damagePositionArea: '',
+    damageType: '' as '' | '玻璃裂纹' | '边框变形' | '背板破损' | '其他',
+    damageTypeOther: '',
+    damageImages: [] as string[],
+    damageSuggestion: '' as '' | '无需处理' | '待更换' | '临时修复' | '其他',
+    damageSuggestionOther: '',
+    otherAbnormal: false,
+    abnormalDesc: '',
+    abnormalSerial: '',
+    abnormalBlock: '',
+    abnormalPositionArea: '',
+    abnormalImages: [] as string[],
+    abnormalResult: '',
+    imagesBefore: [] as string[],
+    imagesDuring: [] as string[],
+    imagesAfter: [] as string[],
+    cleanMethod: '' as '' | '人工' | '高压水枪' | '机器人',
+    workDate: '',
+    weather: '' as '' | '晴' | '阴' | '多云',
+    supervisorSign: '',
+    supervisorDate: '',
+    acceptorSign: '',
+    acceptorDate: '',
+  });
+
+  const [cleanRecordList] = React.useState(cleanRecordListMock);
+  const [selectedCleanRecordIds, setSelectedCleanRecordIds] = React.useState<number[]>([]);
+  const [isCleanRecordDetailOpen, setIsCleanRecordDetailOpen] = React.useState(false);
+  const [selectedCleanRecordId, setSelectedCleanRecordId] = React.useState<number | null>(null);
+
+  const cleanRecordDetailMock = {
+    dirtyLevel: '严重' as const,
+    pollutant: '泥沙' as const,
+    pollutantOther: '',
+    effect: '达标' as const,
+    effectReason: '',
+    componentDamaged: false,
+    damageSerial: '1',
+    damageBlock: '2',
+    damagePositionArea: 'A区组件',
+    damageType: '玻璃裂纹' as const,
+    damageTypeOther: '',
+    damageSuggestion: '待更换' as const,
+    damageSuggestionOther: '',
+    otherAbnormal: false,
+    abnormalDesc: '',
+    abnormalSerial: '',
+    abnormalBlock: '',
+    abnormalPositionArea: '',
+    abnormalResult: '',
+    cleanMethod: '人工' as const,
+    workDate: '2026-03-12',
+    weather: '晴' as const,
+    supervisorDate: '2026-03-12',
+    acceptorDate: '2026-03-12',
+  };
 
   const toggleMenu = (menu: string) => {
     setExpandedMenus(prev => 
@@ -391,17 +516,17 @@ export default function App() {
                     exit={{ height: 0, opacity: 0 }}
                     className="overflow-hidden bg-blue-900/30"
                   >
-                    <SidebarItem 
-                      icon={ChevronRight} 
-                      label="整站监控" 
-                      active={activeMenu === 'whole-station'} 
-                      onClick={() => setActiveMenu('whole-station')} 
+                    <SidebarItem
+                      icon={ChevronRight}
+                      label="整站监控"
+                      active={activeMenu === 'whole-station'}
+                      onClick={() => setActiveMenu('whole-station')}
                     />
-                    <SidebarItem 
-                      icon={ChevronRight} 
-                      label="单站监控" 
-                      active={activeMenu === 'single-station'} 
-                      onClick={() => setActiveMenu('single-station')} 
+                    <SidebarItem
+                      icon={ChevronRight}
+                      label="单站监控"
+                      active={activeMenu === 'single-station'}
+                      onClick={() => setActiveMenu('single-station')}
                     />
                   </motion.div>
                 )}
@@ -421,17 +546,17 @@ export default function App() {
                     exit={{ height: 0, opacity: 0 }}
                     className="overflow-hidden bg-blue-900/30"
                   >
-                    <SidebarItem 
-                      icon={ChevronRight} 
-                      label="告警配置" 
-                      active={activeMenu === 'alarm-config'} 
-                      onClick={() => setActiveMenu('alarm-config')} 
+                    <SidebarItem
+                      icon={ChevronRight}
+                      label="告警配置"
+                      active={activeMenu === 'alarm-config'}
+                      onClick={() => setActiveMenu('alarm-config')}
                     />
-                    <SidebarItem 
-                      icon={ChevronRight} 
-                      label="告警数据" 
-                      active={activeMenu === 'alarm-data'} 
-                      onClick={() => setActiveMenu('alarm-data')} 
+                    <SidebarItem
+                      icon={ChevronRight}
+                      label="告警数据"
+                      active={activeMenu === 'alarm-data'}
+                      onClick={() => setActiveMenu('alarm-data')}
                     />
                   </motion.div>
                 )}
@@ -451,17 +576,17 @@ export default function App() {
                     exit={{ height: 0, opacity: 0 }}
                     className="overflow-hidden bg-blue-900/30"
                   >
-                    <SidebarItem 
-                      icon={ChevronRight} 
-                      label="并网柜温度曲线" 
-                      active={activeMenu === 'temp-curve'} 
-                      onClick={() => setActiveMenu('temp-curve')} 
+                    <SidebarItem
+                      icon={ChevronRight}
+                      label="并网柜温度曲线"
+                      active={activeMenu === 'temp-curve'}
+                      onClick={() => setActiveMenu('temp-curve')}
                     />
-                    <SidebarItem 
-                      icon={ChevronRight} 
-                      label="三相不平衡曲线" 
-                      active={activeMenu === 'unbalance-curve'} 
-                      onClick={() => setActiveMenu('unbalance-curve')} 
+                    <SidebarItem
+                      icon={ChevronRight}
+                      label="三相不平衡曲线"
+                      active={activeMenu === 'unbalance-curve'}
+                      onClick={() => setActiveMenu('unbalance-curve')}
                     />
                   </motion.div>
                 )}
@@ -471,13 +596,43 @@ export default function App() {
             <>
               <SidebarItem icon={LayoutDashboard} label="大屏" />
               <SidebarItem icon={Globe} label="概览" hasSubmenu />
-              <SidebarItem icon={Activity} label="电站监测" active hasSubmenu />
-              <div className="pl-4">
-                <SidebarItem icon={ChevronRight} label="电站概览" />
-                <SidebarItem icon={ChevronRight} label="逆变器状态" />
-              </div>
+              <SidebarItem icon={Activity} label="电站监测" hasSubmenu />
               <SidebarItem icon={BarChart3} label="报表" hasSubmenu />
-              <SidebarItem icon={ShieldCheck} label="智慧运维" hasSubmenu />
+              <SidebarItem 
+                icon={ShieldCheck} 
+                label="智慧运维" 
+                hasSubmenu 
+                onClick={() => toggleMenu('smart-ops')}
+              />
+              <AnimatePresence>
+                {expandedMenus.includes('smart-ops') && (
+                  <motion.div 
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="overflow-hidden bg-blue-900/30"
+                  >
+                    <SidebarItem
+                      icon={ChevronRight}
+                      label="清洗计划"
+                      active={activeMenu === 'clean-plan'}
+                      onClick={() => setActiveMenu('clean-plan')}
+                    />
+                    <SidebarItem
+                      icon={ChevronRight}
+                      label="清洗任务"
+                      active={activeMenu === 'clean-task'}
+                      onClick={() => setActiveMenu('clean-task')}
+                    />
+                    <SidebarItem
+                      icon={ChevronRight}
+                      label="清洗记录"
+                      active={activeMenu === 'clean-record'}
+                      onClick={() => setActiveMenu('clean-record')}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
               <SidebarItem 
                 icon={Settings} 
                 label="综合管理" 
@@ -492,11 +647,11 @@ export default function App() {
                     exit={{ height: 0, opacity: 0 }}
                     className="overflow-hidden bg-blue-900/30"
                   >
-                    <SidebarItem 
-                      icon={ChevronRight} 
-                      label="电站管理" 
-                      active={activeMenu === 'station-mgmt' || activeMenu === 'device-mgmt'} 
-                      onClick={() => setActiveMenu('station-mgmt')} 
+                    <SidebarItem
+                      icon={ChevronRight}
+                      label="电站管理"
+                      active={activeMenu === 'station-mgmt' || activeMenu === 'device-mgmt'}
+                      onClick={() => setActiveMenu('station-mgmt')}
                     />
                     <SidebarItem icon={ChevronRight} label="角色管理" />
                     <SidebarItem icon={ChevronRight} label="人员管理" />
@@ -588,7 +743,10 @@ export default function App() {
                 <ChevronRight size={12} />
                 <span className="bg-blue-50 text-blue-600 font-medium px-2 py-1 rounded">
                   {activeMenu === 'station-mgmt' ? '电站管理' : 
-                   activeMenu === 'device-mgmt' ? '设备管理' : '电站概览'}
+                   activeMenu === 'device-mgmt' ? '设备管理' :
+                   activeMenu === 'clean-plan' ? '清洗计划' :
+                   activeMenu === 'clean-task' ? '清洗任务' :
+                   activeMenu === 'clean-record' ? '清洗记录' : '电站概览'}
                 </span>
               </>
             )}
@@ -1525,6 +1683,889 @@ export default function App() {
                 </div>
               </div>
             </div>
+          ) : activeMenu === 'clean-plan' ? (
+            isCleanPlanFormOpen ? (
+              <div className="space-y-4">
+                <div className="flex justify-end">
+                  <button type="button" onClick={() => setIsCleanPlanFormOpen(false)} className="text-xs text-gray-500 hover:text-blue-600 flex items-center gap-1">
+                    <RotateCcw size={14} /> 返回上一页
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                  {/* 左侧：任务编辑（仅展示任务项，选项不在此展示） */}
+                  <div className="lg:col-span-1 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                        <span className="w-1 h-4 bg-blue-500 rounded-full flex-shrink-0" />
+                        任务编辑
+                      </h4>
+                      <button type="button" className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                        新增
+                      </button>
+                    </div>
+                    <div className="space-y-4">
+                      {/* 1、脏污与效果 */}
+                      <div className="rounded-lg p-3 bg-gray-50/80 border border-gray-100">
+                        <div className="text-xs font-bold text-gray-700 mb-2">1、脏污与效果</div>
+                        <div className="space-y-2">
+                          {['脏污程度', '主要污染物', '清洗效果'].map((label) => (
+                            <div key={label} className="flex items-center justify-between rounded-md border border-blue-100 bg-white px-3 py-2 shadow-sm">
+                              <span className="text-xs text-gray-700">{label}</span>
+                              <div className="flex items-center gap-2">
+                                <button type="button" className="p-0.5 text-blue-600 hover:text-blue-700" aria-label="确认"><CheckCircle2 size={16} /></button>
+                                <button type="button" className="p-0.5 text-blue-600 hover:text-blue-700" aria-label="移除"><X size={16} /></button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      {/* 2、组件破损记录 */}
+                      <div className="rounded-lg p-3 bg-gray-50/80 border border-gray-100">
+                        <div className="text-xs font-bold text-gray-700 mb-2">2、组件破损记录</div>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between rounded-md border border-blue-100 bg-white px-3 py-2 shadow-sm">
+                            <span className="text-xs text-gray-700">组件是否破损</span>
+                            <div className="flex items-center gap-2">
+                              <button type="button" className="p-0.5 text-blue-600 hover:text-blue-700" aria-label="确认"><CheckCircle2 size={16} /></button>
+                              <button type="button" className="p-0.5 text-blue-600 hover:text-blue-700" aria-label="移除"><X size={16} /></button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      {/* 3、其他异常记录 */}
+                      <div className="rounded-lg p-3 bg-gray-50/80 border border-gray-100">
+                        <div className="text-xs font-bold text-gray-700 mb-2">3、其他异常记录</div>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between rounded-md border border-blue-100 bg-white px-3 py-2 shadow-sm">
+                            <span className="text-xs text-gray-700">是否有其他异常</span>
+                            <div className="flex items-center gap-2">
+                              <button type="button" className="p-0.5 text-blue-600 hover:text-blue-700" aria-label="确认"><CheckCircle2 size={16} /></button>
+                              <button type="button" className="p-0.5 text-blue-600 hover:text-blue-700" aria-label="移除"><X size={16} /></button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex justify-center pt-2">
+                      <span className="px-4 py-2 text-xs text-gray-400 bg-gray-100 rounded-lg">没有更多了</span>
+                    </div>
+                  </div>
+                  {/* 右侧：设置循环周期、起止时间 + 其他 */}
+                  <div className="lg:col-span-2 space-y-6">
+                    <div className="border border-gray-100 rounded-lg p-4">
+                      <h4 className="text-xs font-bold text-gray-700 mb-4">设置循环周期、起止时间</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="flex flex-col gap-1">
+                          <label className="text-xs text-gray-500">循环周期</label>
+                          <div className="flex items-center gap-2">
+                            <input type="number" min={1} value={cleanPlanForm.cycle} onChange={(e) => setCleanPlanForm((p) => ({ ...p, cycle: Number(e.target.value) || 1 }))} className="text-xs border border-gray-200 rounded px-2 py-1.5 w-20" />
+                            <span className="text-xs text-gray-500">循环1次</span>
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <label className="text-xs text-gray-500">第一次任务执行时间</label>
+                          <div className="flex items-center gap-2">
+                            <input type="datetime-local" value={cleanPlanForm.firstExecTime} onChange={(e) => setCleanPlanForm((p) => ({ ...p, firstExecTime: e.target.value }))} className="text-xs border border-gray-200 rounded px-2 py-1.5 flex-1" />
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-1 md:col-span-2">
+                          <label className="text-xs text-gray-500">计划结束时间</label>
+                          <div className="flex items-center gap-4">
+                            <label className="flex items-center gap-1.5 cursor-pointer">
+                              <input type="radio" name="endTimeType" checked={cleanPlanForm.endTimeType === 'never'} onChange={() => setCleanPlanForm((p) => ({ ...p, endTimeType: 'never' }))} className="text-blue-600" />
+                              <span className="text-xs">永不</span>
+                            </label>
+                            <label className="flex items-center gap-1.5 cursor-pointer">
+                              <input type="radio" name="endTimeType" checked={cleanPlanForm.endTimeType === 'specified'} onChange={() => setCleanPlanForm((p) => ({ ...p, endTimeType: 'specified' }))} className="text-blue-600" />
+                              <span className="text-xs">指定时间</span>
+                            </label>
+                            {cleanPlanForm.endTimeType === 'specified' && (
+                              <input type="datetime-local" value={cleanPlanForm.endTime} onChange={(e) => setCleanPlanForm((p) => ({ ...p, endTime: e.target.value }))} className="text-xs border border-gray-200 rounded px-2 py-1.5" />
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <label className="text-xs text-gray-500">提醒时间</label>
+                          <div className="flex items-center gap-2">
+                            <input type="text" value={cleanPlanForm.reminder} onChange={(e) => setCleanPlanForm((p) => ({ ...p, reminder: e.target.value }))} className="text-xs border border-gray-200 rounded px-2 py-1.5 flex-1" />
+                            <span className="text-xs text-gray-500">周期结束前</span>
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <label className="text-xs text-gray-500">清洗总次数</label>
+                          <div className="flex items-center gap-2">
+                            <button type="button" onClick={() => setCleanPlanForm((p) => ({ ...p, totalCount: Math.max(1, p.totalCount - 1) }))} className="w-7 h-7 rounded border border-gray-200 text-gray-500 hover:bg-gray-50">-</button>
+                            <input type="number" min={1} value={cleanPlanForm.totalCount} onChange={(e) => setCleanPlanForm((p) => ({ ...p, totalCount: Number(e.target.value) || 1 }))} className="text-xs border border-gray-200 rounded px-2 py-1.5 w-16 text-center" />
+                            <button type="button" onClick={() => setCleanPlanForm((p) => ({ ...p, totalCount: p.totalCount + 1 }))} className="w-7 h-7 rounded border border-gray-200 text-gray-500 hover:bg-gray-50">+</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="border border-gray-100 rounded-lg p-4">
+                      <h4 className="text-xs font-bold text-gray-700 mb-4">其他</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="flex flex-col gap-1">
+                          <label className="text-xs text-gray-500">电站选择</label>
+                          <input type="text" value={cleanPlanForm.station} onChange={(e) => setCleanPlanForm((p) => ({ ...p, station: e.target.value }))} placeholder="请选择电站" className="text-xs border border-gray-200 rounded px-3 py-2 w-full" />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <label className="text-xs text-gray-500">责任人</label>
+                          <select value={cleanPlanForm.person} onChange={(e) => setCleanPlanForm((p) => ({ ...p, person: e.target.value }))} className="text-xs border border-gray-200 rounded px-3 py-2 w-full">
+                            <option value="">请选择</option>
+                            <option value="鲁杭杰">鲁杭杰</option>
+                            <option value="管理员">管理员</option>
+                          </select>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <label className="text-xs text-gray-500">联系电话</label>
+                          <input type="text" value={cleanPlanForm.phone} onChange={(e) => setCleanPlanForm((p) => ({ ...p, phone: e.target.value }))} placeholder="请输入联系电话" className="text-xs border border-gray-200 rounded px-3 py-2 w-full" />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <label className="text-xs text-gray-500">额外提醒人</label>
+                          <select value={cleanPlanForm.extraReminder} onChange={(e) => setCleanPlanForm((p) => ({ ...p, extraReminder: e.target.value }))} className="text-xs border border-gray-200 rounded px-3 py-2 w-full">
+                            <option value="">请选择</option>
+                            <option value="鲁杭杰">鲁杭杰</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex justify-end gap-3 pt-4">
+                  <button type="button" onClick={() => setIsCleanPlanFormOpen(false)} className="px-6 py-2 border border-gray-200 text-gray-600 text-xs font-bold rounded-lg hover:bg-gray-50">取消</button>
+                  <button type="button" onClick={() => { setIsCleanPlanFormOpen(false); }} className="px-6 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700">保存</button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500 whitespace-nowrap">电站选择:</span>
+                    <input type="text" placeholder="电站选择" className="text-xs border border-gray-200 rounded px-3 py-2 w-48 focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
+                    <button type="button" className="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded hover:bg-blue-700">查询</button>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button type="button" className="px-4 py-2 border border-gray-200 text-gray-600 text-xs font-bold rounded hover:bg-gray-50">批量删除</button>
+                    <button type="button" className="px-4 py-2 border border-gray-200 text-gray-600 text-xs font-bold rounded hover:bg-gray-50">计划导出</button>
+                    <button type="button" onClick={() => setIsCleanPlanFormOpen(true)} className="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded hover:bg-blue-700 flex items-center gap-1">
+                      <Plus size={14} /> 新增清洗计划
+                    </button>
+                    <button type="button" className="p-2 text-gray-500 hover:bg-gray-100 rounded"><RotateCcw size={18} /></button>
+                  </div>
+                </div>
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="bg-gray-50 text-gray-500 border-b border-gray-100">
+                          <th className="px-4 py-3 text-left w-10"><input type="checkbox" checked={selectedCleanPlanIds.length === cleanPlanList.length} onChange={(e) => setSelectedCleanPlanIds(e.target.checked ? cleanPlanList.map((p) => p.id) : [])} className="rounded border-gray-300 text-blue-600" /></th>
+                          <th className="px-4 py-3 text-left font-medium">序号</th>
+                          <th className="px-4 py-3 text-left font-medium">电站名称</th>
+                          <th className="px-4 py-3 text-left font-medium">责任人</th>
+                          <th className="px-4 py-3 text-left font-medium">联系电话</th>
+                          <th className="px-4 py-3 text-left font-medium">清洗周期</th>
+                          <th className="px-4 py-3 text-left font-medium">计划结束时间</th>
+                          <th className="px-4 py-3 text-left font-medium w-32">操作</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {cleanPlanList.map((row, idx) => (
+                          <tr key={row.id} className="hover:bg-gray-50/50 transition-colors">
+                            <td className="px-4 py-3"><input type="checkbox" checked={selectedCleanPlanIds.includes(row.id)} onChange={(e) => setSelectedCleanPlanIds((prev) => e.target.checked ? [...prev, row.id] : prev.filter((id) => id !== row.id))} className="rounded border-gray-300 text-blue-600" /></td>
+                            <td className="px-4 py-3 text-gray-500">{idx + 1}</td>
+                            <td className="px-4 py-3 font-medium text-gray-700">{row.stationName}</td>
+                            <td className="px-4 py-3 text-gray-600">{row.person}</td>
+                            <td className="px-4 py-3 text-gray-600">{row.phone}</td>
+                            <td className="px-4 py-3 text-gray-600">{row.cycle}</td>
+                            <td className="px-4 py-3 text-gray-600">{row.planEndTime || '-'}</td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-3">
+                                <button type="button" className="text-blue-600 hover:underline">详情</button>
+                                <button type="button" className="text-blue-600 hover:underline">复制</button>
+                                <button type="button" className="text-blue-600 hover:underline">修改</button>
+                                <button type="button" onClick={() => setCleanPlanList((prev) => prev.filter((p) => p.id !== row.id))} className="text-red-500 hover:underline">删除</button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="flex items-center justify-between px-4 py-3 border-t border-gray-50 text-xs text-gray-500">
+                    <span>共 {cleanPlanList.length} 条记录</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-400">20条/页</span>
+                      <div className="flex items-center gap-1">
+                        <button type="button" className="w-7 h-7 flex items-center justify-center rounded border border-gray-200 hover:bg-gray-50 text-gray-500">1</button>
+                        <button type="button" className="w-7 h-7 flex items-center justify-center rounded border border-gray-200 hover:bg-gray-50 text-gray-500">2</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )
+          ) : activeMenu === 'clean-task' ? (
+            isCleanTaskFormOpen ? (
+              <div className="space-y-6 pb-24">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                      <span className="w-1 h-5 bg-blue-500 rounded-full flex-shrink-0" />
+                      填写清洗任务
+                    </h2>
+                    <p className="text-xs text-gray-400 mt-1">修改时间: {new Date().toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' })}</p>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="text-xs text-gray-800 flex items-center gap-1">
+                      本次为第
+                      <input
+                        type="number"
+                        min={1}
+                        value={cleanTaskFormData.cleanIndex || ''}
+                        onChange={(e) =>
+                          setCleanTaskFormData((p) => ({
+                            ...p,
+                            cleanIndex: e.target.value ? Number(e.target.value) : undefined,
+                          }))
+                        }
+                        className="w-14 border-b border-red-300 bg-transparent text-center focus:outline-none focus:border-red-500"
+                      />
+                      次清洗
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsCleanTaskFormOpen(false);
+                        setSelectedCleanTaskId(null);
+                      }}
+                      className="text-xs text-gray-500 hover:text-blue-600 flex items-center gap-1"
+                    >
+                      <RotateCcw size={14} /> 返回上一页
+                    </button>
+                  </div>
+                </div>
+
+                {/* 任务项填写 */}
+                <Card title="任务项填写" className="overflow-visible">
+                  <div className="space-y-6">
+                    <div>
+                      <div className="text-sm font-bold text-gray-700 mb-3">1、脏污与效果</div>
+                      <div className="pl-2 flex flex-wrap items-center gap-x-6 gap-y-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-gray-600 whitespace-nowrap">脏污程度</span>
+                          <select value={cleanTaskFormData.dirtyLevel} onChange={(e) => setCleanTaskFormData((p) => ({ ...p, dirtyLevel: e.target.value as any }))} className="text-xs border border-gray-200 rounded px-3 py-2 w-32">
+                            <option value="">请选择</option>
+                            <option value="轻微">轻微</option>
+                            <option value="中等">中等</option>
+                            <option value="严重">严重</option>
+                          </select>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-gray-600 whitespace-nowrap">主要污染物</span>
+                          <select value={cleanTaskFormData.pollutant} onChange={(e) => setCleanTaskFormData((p) => ({ ...p, pollutant: e.target.value as any }))} className="text-xs border border-gray-200 rounded px-3 py-2 w-32">
+                            <option value="">请选择</option>
+                            <option value="积灰">积灰</option>
+                            <option value="鸟粪">鸟粪</option>
+                            <option value="泥沙">泥沙</option>
+                            <option value="油污">油污</option>
+                            <option value="其他">其他</option>
+                          </select>
+                          {cleanTaskFormData.pollutant === '其他' && (
+                            <input type="text" value={cleanTaskFormData.pollutantOther} onChange={(e) => setCleanTaskFormData((p) => ({ ...p, pollutantOther: e.target.value }))} placeholder="补充内容" className="text-xs border border-gray-200 rounded px-2 py-1.5 w-40" />
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-gray-600 whitespace-nowrap">清洗效果</span>
+                          <label className="flex items-center gap-1.5 cursor-pointer">
+                            <input type="radio" name="effect" checked={cleanTaskFormData.effect === '达标'} onChange={() => setCleanTaskFormData((p) => ({ ...p, effect: '达标', effectReason: '' }))} className="text-blue-600" />
+                            <span className="text-xs">达标</span>
+                          </label>
+                          <label className="flex items-center gap-1.5 cursor-pointer">
+                            <input type="radio" name="effect" checked={cleanTaskFormData.effect === '未达标'} onChange={() => setCleanTaskFormData((p) => ({ ...p, effect: '未达标' }))} className="text-blue-600" />
+                            <span className="text-xs">未达标</span>
+                          </label>
+                          {cleanTaskFormData.effect === '未达标' && (
+                            <input type="text" value={cleanTaskFormData.effectReason} onChange={(e) => setCleanTaskFormData((p) => ({ ...p, effectReason: e.target.value }))} placeholder="请填写未达标原因" className="text-xs border border-gray-200 rounded px-2 py-1.5 w-40" />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-gray-700 mb-3">2、组件破损记录</div>
+                      <div className="pl-2 space-y-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-gray-600">组件是否破损</span>
+                          <label className="flex items-center gap-1.5 cursor-pointer">
+                            <input type="radio" name="damaged" checked={!cleanTaskFormData.componentDamaged} onChange={() => setCleanTaskFormData((p) => ({ ...p, componentDamaged: false }))} className="text-blue-600" />
+                            <span className="text-xs">无</span>
+                          </label>
+                          <label className="flex items-center gap-1.5 cursor-pointer">
+                            <input type="radio" name="damaged" checked={cleanTaskFormData.componentDamaged} onChange={() => setCleanTaskFormData((p) => ({ ...p, componentDamaged: true }))} className="text-blue-600" />
+                            <span className="text-xs">有破损</span>
+                          </label>
+                        </div>
+                        {cleanTaskFormData.componentDamaged && (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50/50 rounded-lg border border-gray-100">
+                            <div className="space-y-1">
+                              <label className="text-xs text-gray-600">破损位置</label>
+                              <div className="flex items-center gap-1 flex-wrap">
+                                <span className="text-xs">第</span>
+                                <input type="text" value={cleanTaskFormData.damageSerial} onChange={(e) => setCleanTaskFormData((p) => ({ ...p, damageSerial: e.target.value }))} placeholder="串" className="text-xs border border-gray-200 rounded px-2 py-1.5 w-14" />
+                                <span className="text-xs">串第</span>
+                                <input type="text" value={cleanTaskFormData.damageBlock} onChange={(e) => setCleanTaskFormData((p) => ({ ...p, damageBlock: e.target.value }))} placeholder="块" className="text-xs border border-gray-200 rounded px-2 py-1.5 w-14" />
+                                <span className="text-xs">块组件 /</span>
+                                <input type="text" value={cleanTaskFormData.damagePositionArea} onChange={(e) => setCleanTaskFormData((p) => ({ ...p, damagePositionArea: e.target.value }))} placeholder="_区域组件" className="text-xs border border-gray-200 rounded px-2 py-1.5 flex-1 min-w-24" />
+                              </div>
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-xs text-gray-600">破损类型</label>
+                              <select value={cleanTaskFormData.damageType} onChange={(e) => setCleanTaskFormData((p) => ({ ...p, damageType: e.target.value as any }))} className="text-xs border border-gray-200 rounded px-2 py-1.5 w-full">
+                                <option value="">请选择</option>
+                                <option value="玻璃裂纹">玻璃裂纹</option>
+                                <option value="边框变形">边框变形</option>
+                                <option value="背板破损">背板破损</option>
+                                <option value="其他">其他</option>
+                              </select>
+                              {cleanTaskFormData.damageType === '其他' && (
+                                <input type="text" value={cleanTaskFormData.damageTypeOther} onChange={(e) => setCleanTaskFormData((p) => ({ ...p, damageTypeOther: e.target.value }))} placeholder="补充内容" className="text-xs border border-gray-200 rounded px-2 py-1.5 w-full mt-1" />
+                              )}
+                            </div>
+                            <div className="md:col-span-2 space-y-1">
+                              <label className="text-xs text-gray-600">破损图片标注</label>
+                              <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 text-center text-gray-400 text-xs">点击上传，最多10张</div>
+                            </div>
+                            <div className="md:col-span-2 space-y-1">
+                              <label className="text-xs text-gray-600">处理建议</label>
+                              <select value={cleanTaskFormData.damageSuggestion} onChange={(e) => setCleanTaskFormData((p) => ({ ...p, damageSuggestion: e.target.value as any }))} className="text-xs border border-gray-200 rounded px-2 py-1.5 w-full">
+                                <option value="">请选择</option>
+                                <option value="无需处理">无需处理</option>
+                                <option value="待更换">待更换</option>
+                                <option value="临时修复">临时修复</option>
+                                <option value="其他">其他</option>
+                              </select>
+                              {cleanTaskFormData.damageSuggestion === '其他' && (
+                                <input type="text" value={cleanTaskFormData.damageSuggestionOther} onChange={(e) => setCleanTaskFormData((p) => ({ ...p, damageSuggestionOther: e.target.value }))} placeholder="补充内容" className="text-xs border border-gray-200 rounded px-2 py-1.5 w-full mt-1" />
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-gray-700 mb-3">3、其他异常记录</div>
+                      <div className="pl-2 space-y-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-gray-600">是否有其他异常</span>
+                          <label className="flex items-center gap-1.5 cursor-pointer">
+                            <input type="radio" name="abnormal" checked={!cleanTaskFormData.otherAbnormal} onChange={() => setCleanTaskFormData((p) => ({ ...p, otherAbnormal: false }))} className="text-blue-600" />
+                            <span className="text-xs">无</span>
+                          </label>
+                          <label className="flex items-center gap-1.5 cursor-pointer">
+                            <input type="radio" name="abnormal" checked={cleanTaskFormData.otherAbnormal} onChange={() => setCleanTaskFormData((p) => ({ ...p, otherAbnormal: true }))} className="text-blue-600" />
+                            <span className="text-xs">有异常</span>
+                          </label>
+                        </div>
+                        {cleanTaskFormData.otherAbnormal && (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50/50 rounded-lg border border-gray-100">
+                            <div className="md:col-span-2 space-y-1">
+                              <label className="text-xs text-gray-600">异常描述（不超过200字）</label>
+                              <textarea value={cleanTaskFormData.abnormalDesc} onChange={(e) => setCleanTaskFormData((p) => ({ ...p, abnormalDesc: e.target.value.slice(0, 200) }))} placeholder="请输入" rows={2} className="text-xs border border-gray-200 rounded px-2 py-1.5 w-full resize-none" maxLength={200} />
+                              <span className="text-[10px] text-gray-400">{cleanTaskFormData.abnormalDesc.length}/200</span>
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-xs text-gray-600">异常位置</label>
+                              <div className="flex items-center gap-1 flex-wrap">
+                                <span className="text-xs">第</span>
+                                <input type="text" value={cleanTaskFormData.abnormalSerial} onChange={(e) => setCleanTaskFormData((p) => ({ ...p, abnormalSerial: e.target.value }))} placeholder="串" className="text-xs border border-gray-200 rounded px-2 py-1.5 w-14" />
+                                <span className="text-xs">串第</span>
+                                <input type="text" value={cleanTaskFormData.abnormalBlock} onChange={(e) => setCleanTaskFormData((p) => ({ ...p, abnormalBlock: e.target.value }))} placeholder="块" className="text-xs border border-gray-200 rounded px-2 py-1.5 w-14" />
+                                <span className="text-xs">块组件 /</span>
+                                <input type="text" value={cleanTaskFormData.abnormalPositionArea} onChange={(e) => setCleanTaskFormData((p) => ({ ...p, abnormalPositionArea: e.target.value }))} placeholder="_区域组件" className="text-xs border border-gray-200 rounded px-2 py-1.5 flex-1 min-w-24" />
+                              </div>
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-xs text-gray-600">异常图片标注</label>
+                              <div className="border-2 border-dashed border-gray-200 rounded-lg p-4 text-center text-gray-400 text-xs">点击上传，最多10张</div>
+                            </div>
+                            <div className="md:col-span-2 space-y-1">
+                              <label className="text-xs text-gray-600">处理结果（不超过200字）</label>
+                              <textarea value={cleanTaskFormData.abnormalResult} onChange={(e) => setCleanTaskFormData((p) => ({ ...p, abnormalResult: e.target.value.slice(0, 200) }))} placeholder="请输入" rows={2} className="text-xs border border-gray-200 rounded px-2 py-1.5 w-full resize-none" maxLength={200} />
+                              <span className="text-[10px] text-gray-400">{cleanTaskFormData.abnormalResult.length}/200</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+
+                {/* 清洗全流程图片 */}
+                <Card title="清洗全流程图片">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                      <div className="text-xs font-bold text-gray-700 mb-2">清洗前图片（组件原始状态）</div>
+                      <div className="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center text-gray-400 text-xs">点击上传，最多10张</div>
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-gray-700 mb-2">清洗中图片（作业过程）</div>
+                      <div className="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center text-gray-400 text-xs">点击上传，最多10张</div>
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-gray-700 mb-2">清洗后图片（清洁完状态）</div>
+                      <div className="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center text-gray-400 text-xs">点击上传，最多10张</div>
+                    </div>
+                  </div>
+                </Card>
+
+                {/* 清洗详情 */}
+                <Card title="清洗详情">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-xs text-gray-600">清洗方式</label>
+                      <select value={cleanTaskFormData.cleanMethod} onChange={(e) => setCleanTaskFormData((p) => ({ ...p, cleanMethod: e.target.value as any }))} className="text-xs border border-gray-200 rounded px-3 py-2 w-full">
+                        <option value="">请选择</option>
+                        <option value="人工">人工</option>
+                        <option value="高压水枪">高压水枪</option>
+                        <option value="机器人">机器人</option>
+                      </select>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs text-gray-600">作业时间</label>
+                      <input type="date" value={cleanTaskFormData.workDate} onChange={(e) => setCleanTaskFormData((p) => ({ ...p, workDate: e.target.value }))} className="text-xs border border-gray-200 rounded px-3 py-2 w-full" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs text-gray-600">天气情况</label>
+                      <select value={cleanTaskFormData.weather} onChange={(e) => setCleanTaskFormData((p) => ({ ...p, weather: e.target.value as any }))} className="text-xs border border-gray-200 rounded px-3 py-2 w-full">
+                        <option value="">请选择</option>
+                        <option value="晴">晴</option>
+                        <option value="阴">阴</option>
+                        <option value="多云">多云</option>
+                      </select>
+                    </div>
+                  </div>
+                </Card>
+
+                {/* 确认签字 */}
+                <Card title="确认签字">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-xs text-gray-600">清洗负责人签字及日期</label>
+                      <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 text-center text-gray-400 text-xs">签字区域</div>
+                      <div className="flex items-center gap-2">
+                        <button type="button" className="text-xs text-gray-500 hover:text-gray-700">清空</button>
+                        <button type="button" className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700">上传签名</button>
+                        <input type="date" value={cleanTaskFormData.supervisorDate} onChange={(e) => setCleanTaskFormData((p) => ({ ...p, supervisorDate: e.target.value }))} className="text-xs border border-gray-200 rounded px-2 py-1.5" />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs text-gray-600">验收人签字及日期</label>
+                      <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 text-center text-gray-400 text-xs">签字区域</div>
+                      <div className="flex items-center gap-2">
+                        <button type="button" className="text-xs text-gray-500 hover:text-gray-700">清空</button>
+                        <button type="button" className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700">上传签名</button>
+                        <input type="date" value={cleanTaskFormData.acceptorDate} onChange={(e) => setCleanTaskFormData((p) => ({ ...p, acceptorDate: e.target.value }))} className="text-xs border border-gray-200 rounded px-2 py-1.5" />
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+
+                <div className="bg-white border-t border-gray-200 px-4 py-3 flex items-center justify-between mt-6 rounded-b-lg">
+                  <span className="text-xs text-gray-500">共 3 个任务组 / 5 个清洗项</span>
+                  <div className="flex gap-3">
+                    <button type="button" className="px-6 py-2 border border-gray-200 text-gray-600 text-xs font-bold rounded-lg hover:bg-gray-50">暂存</button>
+                    <button type="button" onClick={() => { setIsCleanTaskFormOpen(false); setSelectedCleanTaskId(null); }} className="px-6 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700">提交清洗结果</button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+            <div className="space-y-4">
+              <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500 whitespace-nowrap">电站选择:</span>
+                  <input
+                    type="text"
+                    placeholder="电站选择"
+                    className="text-xs border border-gray-200 rounded px-3 py-2 w-44 md:w-56 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500 whitespace-nowrap">清洗任务状态:</span>
+                  <select className="text-xs border border-gray-200 rounded px-3 py-2 w-32 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+                    <option>请选择</option>
+                    <option>未填写</option>
+                    <option>已填写</option>
+                  </select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500 whitespace-nowrap">清洗任务时间:</span>
+                  <input
+                    type="date"
+                    className="text-xs border border-gray-200 rounded px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  />
+                  <span className="text-xs text-gray-400">-</span>
+                  <input
+                    type="date"
+                    className="text-xs border border-gray-200 rounded px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  />
+                </div>
+                <div className="flex items-center gap-2 ml-auto">
+                  <button
+                    type="button"
+                    className="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded hover:bg-blue-700 transition-colors"
+                  >
+                    查询
+                  </button>
+                  <button
+                    type="button"
+                    className="px-4 py-2 bg-white border border-gray-200 text-xs text-gray-600 font-bold rounded hover:bg-gray-50 transition-colors"
+                  >
+                    批量删除
+                  </button>
+                  <button
+                    type="button"
+                    className="px-4 py-2 bg-white border border-gray-200 text-xs text-gray-600 font-bold rounded hover:bg-gray-50 transition-colors"
+                  >
+                    任务导出
+                  </button>
+                  <button
+                    type="button"
+                    className="p-2 text-gray-500 hover:bg-gray-100 rounded transition-colors"
+                    aria-label="刷新"
+                  >
+                    <RotateCcw size={18} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="bg-gray-50 text-gray-500 border-b border-gray-100">
+                        <th className="px-4 py-3 text-left w-10">
+                          <input
+                            type="checkbox"
+                            className="rounded border-gray-300 text-blue-600"
+                            checked={
+                              cleanTaskList.length > 0 &&
+                              selectedCleanTaskIds.length === cleanTaskList.length
+                            }
+                            onChange={(e) =>
+                              setSelectedCleanTaskIds(
+                                e.target.checked ? cleanTaskList.map((t) => t.id) : []
+                              )
+                            }
+                          />
+                        </th>
+                        <th className="px-4 py-3 text-left font-medium">序号</th>
+                        <th className="px-4 py-3 text-left font-medium">电站名称</th>
+                        <th className="px-4 py-3 text-left font-medium">责任人</th>
+                        <th className="px-4 py-3 text-left font-medium">联系电话</th>
+                        <th className="px-4 py-3 text-left font-medium">清洗任务状态</th>
+                        <th className="px-4 py-3 text-left font-medium">任务开始时间</th>
+                        <th className="px-4 py-3 text-left font-medium">任务结束时间</th>
+                        <th className="px-4 py-3 text-left font-medium w-32">任务详情</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {cleanTaskList.map((row, idx) => (
+                        <tr key={row.id} className="hover:bg-gray-50/50 transition-colors">
+                          <td className="px-4 py-3">
+                            <input
+                              type="checkbox"
+                              className="rounded border-gray-300 text-blue-600"
+                              checked={selectedCleanTaskIds.includes(row.id)}
+                              onChange={(e) =>
+                                setSelectedCleanTaskIds((prev) =>
+                                  e.target.checked
+                                    ? [...prev, row.id]
+                                    : prev.filter((id) => id !== row.id)
+                                )
+                              }
+                            />
+                          </td>
+                          <td className="px-4 py-3 text-gray-500">{idx + 1}</td>
+                          <td className="px-4 py-3 font-medium text-gray-700">
+                            {row.stationName}
+                          </td>
+                          <td className="px-4 py-3 text-gray-600">{row.person}</td>
+                          <td className="px-4 py-3 text-gray-600">{row.phone}</td>
+                          <td className="px-4 py-3">
+                            <span
+                              className={cn(
+                                'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium',
+                                row.status === '未填写'
+                                  ? 'bg-red-50 text-red-600 border border-red-100'
+                                  : 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                              )}
+                            >
+                              {row.status}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-gray-600">{row.startTime}</td>
+                          <td className="px-4 py-3 text-gray-600">{row.endTime}</td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-3">
+                              <button
+                                type="button"
+                                className="text-blue-600 hover:underline"
+                                onClick={() => {
+                                  setSelectedCleanTaskId(row.id);
+                                  setIsCleanTaskFormOpen(true);
+                                }}
+                              >
+                                清洗人填写
+                              </button>
+                              <button
+                                type="button"
+                                className="text-blue-600 hover:underline"
+                              >
+                                查看
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="flex items-center justify-between px-4 py-3 border-t border-gray-50 text-xs text-gray-500">
+                  <span>共 {cleanTaskList.length} 条记录</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-400">20条/页</span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        className="w-7 h-7 flex items-center justify-center rounded border border-gray-200 hover:bg-gray-50 text-gray-500"
+                      >
+                        1
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            )
+          ) : activeMenu === 'clean-record' ? (
+            isCleanRecordDetailOpen ? (
+              <div className="space-y-6 pb-8">
+                <div className="flex items-start justify-between">
+                  <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <span className="w-1 h-5 bg-blue-500 rounded-full flex-shrink-0" />
+                    清洗记录详情
+                  </h2>
+                  <div className="flex items-center gap-4">
+                    <div className="text-xs text-gray-800">
+                      本次为第<span className="mx-0.5 font-semibold">1/3</span>次清洗
+                    </div>
+                    <button type="button" className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-1">
+                      导出 PDF
+                    </button>
+                    <button type="button" onClick={() => { setIsCleanRecordDetailOpen(false); setSelectedCleanRecordId(null); }} className="text-xs text-gray-500 hover:text-blue-600 flex items-center gap-1">
+                      <RotateCcw size={14} /> 返回上一页
+                    </button>
+                  </div>
+                </div>
+
+                {/* 清洗项 - 只读 */}
+                <Card title="清洗项" className="overflow-visible">
+                  <div className="space-y-6">
+                    <div>
+                      <div className="text-sm font-bold text-gray-700 mb-3">1、脏污与效果</div>
+                      <div className="pl-2 flex flex-wrap items-center gap-x-6 gap-y-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-gray-600 whitespace-nowrap">脏污程度</span>
+                          <span className="text-xs text-gray-800 bg-gray-50 px-3 py-1.5 rounded">{cleanRecordDetailMock.dirtyLevel || '--'}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-gray-600 whitespace-nowrap">主要污染物</span>
+                          <span className="text-xs text-gray-800 bg-gray-50 px-3 py-1.5 rounded">{cleanRecordDetailMock.pollutant || '--'}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-gray-600 whitespace-nowrap">清洗效果</span>
+                          <span className={cn('inline-flex items-center px-2 py-0.5 rounded text-xs', cleanRecordDetailMock.effect === '达标' ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700')}>√ {cleanRecordDetailMock.effect}{cleanRecordDetailMock.effect === '未达标' && cleanRecordDetailMock.effectReason ? ` (${cleanRecordDetailMock.effectReason})` : ''}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-gray-700 mb-3">2、组件破损记录</div>
+                      <div className="pl-2 space-y-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-gray-600">组件是否破损</span>
+                          <span className="text-xs text-gray-800 bg-gray-50 px-2 py-1 rounded">{cleanRecordDetailMock.componentDamaged ? '有破损' : '无'}</span>
+                        </div>
+                        {cleanRecordDetailMock.componentDamaged && (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50/50 rounded-lg border border-gray-100 text-xs">
+                            <div className="space-y-1">
+                              <span className="text-gray-600">破损位置</span>
+                              <div className="text-gray-800">第{cleanRecordDetailMock.damageSerial}串第{cleanRecordDetailMock.damageBlock}块组件 / {cleanRecordDetailMock.damagePositionArea || '--'}</div>
+                            </div>
+                            <div className="space-y-1">
+                              <span className="text-gray-600">破损类型</span>
+                              <div className="text-gray-800">{cleanRecordDetailMock.damageType || '--'}{cleanRecordDetailMock.damageTypeOther ? `（${cleanRecordDetailMock.damageTypeOther}）` : ''}</div>
+                            </div>
+                            <div className="md:col-span-2 space-y-1">
+                              <span className="text-gray-600">破损图片标注</span>
+                              <div className="border border-gray-200 rounded-lg p-4 text-center text-gray-400 bg-white">图片展示区</div>
+                            </div>
+                            <div className="md:col-span-2 space-y-1">
+                              <span className="text-gray-600">处理建议</span>
+                              <div className="text-gray-800">{cleanRecordDetailMock.damageSuggestion || '--'}{cleanRecordDetailMock.damageSuggestionOther ? `（${cleanRecordDetailMock.damageSuggestionOther}）` : ''}</div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-gray-700 mb-3">3、其他异常记录</div>
+                      <div className="pl-2 space-y-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-gray-600">是否有其他异常</span>
+                          <span className="text-xs text-gray-800 bg-gray-50 px-2 py-1 rounded">{cleanRecordDetailMock.otherAbnormal ? '有异常' : '无'}</span>
+                        </div>
+                        {cleanRecordDetailMock.otherAbnormal && (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50/50 rounded-lg border border-gray-100 text-xs">
+                            <div className="md:col-span-2 space-y-1">
+                              <span className="text-gray-600">异常描述</span>
+                              <div className="text-gray-800">{cleanRecordDetailMock.abnormalDesc || '--'}</div>
+                            </div>
+                            <div className="space-y-1">
+                              <span className="text-gray-600">异常位置</span>
+                              <div className="text-gray-800">第{cleanRecordDetailMock.abnormalSerial}串第{cleanRecordDetailMock.abnormalBlock}块组件 / {cleanRecordDetailMock.abnormalPositionArea || '--'}</div>
+                            </div>
+                            <div className="space-y-1">
+                              <span className="text-gray-600">异常图片标注</span>
+                              <div className="border border-gray-200 rounded-lg p-4 text-center text-gray-400 bg-white">图片展示区</div>
+                            </div>
+                            <div className="md:col-span-2 space-y-1">
+                              <span className="text-gray-600">处理结果</span>
+                              <div className="text-gray-800">{cleanRecordDetailMock.abnormalResult || '--'}</div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+
+                {/* 清洗全流程图片 - 只读 */}
+                <Card title="清洗全流程图片">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                      <div className="text-xs font-bold text-gray-700 mb-2">清洗前图片（组件原始状态）</div>
+                      <div className="border border-gray-200 rounded-lg p-6 text-center text-gray-400 text-xs bg-gray-50/50">图片展示区</div>
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-gray-700 mb-2">清洗中图片（作业过程）</div>
+                      <div className="border border-gray-200 rounded-lg p-6 text-center text-gray-400 text-xs bg-gray-50/50">图片展示区</div>
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-gray-700 mb-2">清洗后图片（清洁完状态）</div>
+                      <div className="border border-gray-200 rounded-lg p-6 text-center text-gray-400 text-xs bg-gray-50/50">图片展示区</div>
+                    </div>
+                  </div>
+                </Card>
+
+                {/* 清洗详情 - 只读 */}
+                <Card title="清洗详情">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-xs text-gray-600">清洗方式</label>
+                      <div className="text-xs text-gray-800 bg-gray-50 px-3 py-2 rounded">{cleanRecordDetailMock.cleanMethod || '--'}</div>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs text-gray-600">作业时间</label>
+                      <div className="text-xs text-gray-800 bg-gray-50 px-3 py-2 rounded">{cleanRecordDetailMock.workDate || '--'}</div>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs text-gray-600">天气情况</label>
+                      <div className="text-xs text-gray-800 bg-gray-50 px-3 py-2 rounded">{cleanRecordDetailMock.weather || '--'}</div>
+                    </div>
+                  </div>
+                </Card>
+
+                {/* 确认签字 - 只读 */}
+                <Card title="确认签字">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-xs text-gray-600">清洗负责人签字及日期</label>
+                      <div className="border border-gray-200 rounded-lg p-6 text-center text-gray-400 text-xs bg-gray-50/50">签字展示</div>
+                      <div className="text-xs text-gray-600">日期：{cleanRecordDetailMock.supervisorDate || '--'}</div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs text-gray-600">验收人签字及日期</label>
+                      <div className="border border-gray-200 rounded-lg p-6 text-center text-gray-400 text-xs bg-gray-50/50">签字展示</div>
+                      <div className="text-xs text-gray-600">日期：{cleanRecordDetailMock.acceptorDate || '--'}</div>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+            ) : (
+            <div className="space-y-4">
+              <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500 whitespace-nowrap">电站选择:</span>
+                  <input type="text" placeholder="电站选择" className="text-xs border border-gray-200 rounded px-3 py-2 w-44 md:w-56 focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500 whitespace-nowrap">清洗时间:</span>
+                  <input type="date" className="text-xs border border-gray-200 rounded px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
+                  <span className="text-xs text-gray-400">-</span>
+                  <input type="date" className="text-xs border border-gray-200 rounded px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
+                </div>
+                <div className="flex items-center gap-2 ml-auto">
+                  <button type="button" className="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded hover:bg-blue-700 transition-colors">查询</button>
+                  <button type="button" className="px-4 py-2 bg-white border border-gray-200 text-xs text-gray-600 font-bold rounded hover:bg-gray-50 transition-colors">批量删除</button>
+                  <button type="button" className="px-4 py-2 bg-white border border-gray-200 text-xs text-gray-600 font-bold rounded hover:bg-gray-50 transition-colors">记录导出</button>
+                  <button type="button" className="p-2 text-gray-500 hover:bg-gray-100 rounded transition-colors" aria-label="刷新"><RotateCcw size={18} /></button>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="bg-gray-50 text-gray-500 border-b border-gray-100">
+                        <th className="px-4 py-3 text-left w-10"><input type="checkbox" className="rounded border-gray-300 text-blue-600" checked={cleanRecordList.length > 0 && selectedCleanRecordIds.length === cleanRecordList.length} onChange={(e) => setSelectedCleanRecordIds(e.target.checked ? cleanRecordList.map((r) => r.id) : [])} /></th>
+                        <th className="px-4 py-3 text-left font-medium">序号</th>
+                        <th className="px-4 py-3 text-left font-medium">电站名称</th>
+                        <th className="px-4 py-3 text-left font-medium">清洗时间</th>
+                        <th className="px-4 py-3 text-left font-medium">责任人</th>
+                        <th className="px-4 py-3 text-left font-medium">清洗人员</th>
+                        <th className="px-4 py-3 text-left font-medium w-24">操作</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {cleanRecordList.map((row, idx) => (
+                        <tr key={row.id} className="hover:bg-gray-50/50 transition-colors">
+                          <td className="px-4 py-3"><input type="checkbox" className="rounded border-gray-300 text-blue-600" checked={selectedCleanRecordIds.includes(row.id)} onChange={(e) => setSelectedCleanRecordIds((prev) => e.target.checked ? [...prev, row.id] : prev.filter((id) => id !== row.id))} /></td>
+                          <td className="px-4 py-3 text-gray-500">{idx + 1}</td>
+                          <td className="px-4 py-3 font-medium text-gray-700">{row.stationName}</td>
+                          <td className="px-4 py-3 text-gray-600">{row.cleanTime || '--'}</td>
+                          <td className="px-4 py-3 text-gray-600">{row.person}</td>
+                          <td className="px-4 py-3">
+                            <div className="flex flex-wrap gap-1">
+                              {row.cleanPersonnel.length ? row.cleanPersonnel.map((p, i) => <span key={i} className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-50 text-blue-700">{p}</span>) : '--'}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <button type="button" className="text-blue-600 hover:underline" onClick={() => { setSelectedCleanRecordId(row.id); setIsCleanRecordDetailOpen(true); }}>详情</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="flex items-center justify-between px-4 py-3 border-t border-gray-50 text-xs text-gray-500">
+                  <span>共 {cleanRecordList.length} 条记录</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-400">20条/页</span>
+                    <div className="flex items-center gap-1"><button type="button" className="w-7 h-7 flex items-center justify-center rounded border border-gray-200 hover:bg-gray-50 text-gray-500">1</button></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            )
           ) : (
             <div className="flex flex-col items-center justify-center h-[60vh] text-gray-400">
               <Activity size={64} className="mb-4 opacity-20" />
