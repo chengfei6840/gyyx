@@ -252,7 +252,7 @@ const StatItem = ({ label, value, unit, icon: Icon, color }: { label: string, va
 
 export default function App() {
   const [activeTab, setActiveTab] = React.useState<Tab>('ops');
-  const [activeMenu, setActiveMenu] = React.useState<MenuId>('clean-plan');
+  const [activeMenu, setActiveMenu] = React.useState<MenuId>('clean-task');
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
   const [expandedMenus, setExpandedMenus] = React.useState<string[]>(['smart-ops', 'comprehensive-mgmt']);
   const [isAlarmModalOpen, setIsAlarmModalOpen] = React.useState(false);
@@ -339,10 +339,17 @@ export default function App() {
     componentDamaged: false,
     otherAbnormal: false,
   });
-  const [cleanTaskList] = React.useState(cleanTaskListMock);
+  const [cleanTaskList, setCleanTaskList] = React.useState(cleanTaskListMock);
   const [selectedCleanTaskIds, setSelectedCleanTaskIds] = React.useState<number[]>([]);
   const [isCleanTaskFormOpen, setIsCleanTaskFormOpen] = React.useState(false);
   const [selectedCleanTaskId, setSelectedCleanTaskId] = React.useState<number | null>(null);
+  const [isAddCleanTaskOpen, setIsAddCleanTaskOpen] = React.useState(false);
+  const [addCleanTaskForm, setAddCleanTaskForm] = React.useState({
+    stationName: '',
+    owners: [] as string[],
+    startDate: '',
+    endDate: '',
+  });
   const [cleanTaskFormData, setCleanTaskFormData] = React.useState({
     cleanIndex: undefined as number | undefined,
     dirtyLevel: '' as '' | '轻微' | '中等' | '严重',
@@ -654,12 +661,6 @@ export default function App() {
                     exit={{ height: 0, opacity: 0 }}
                     className="overflow-hidden bg-blue-900/30"
                   >
-                    <SidebarItem
-                      icon={ChevronRight}
-                      label="清洗计划"
-                      active={activeMenu === 'clean-plan'}
-                      onClick={() => setActiveMenu('clean-plan')}
-                    />
                     <SidebarItem
                       icon={ChevronRight}
                       label="清洗任务"
@@ -2267,6 +2268,13 @@ export default function App() {
                   </button>
                   <button
                     type="button"
+                    className="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded hover:bg-blue-700 transition-colors"
+                    onClick={() => setIsAddCleanTaskOpen(true)}
+                  >
+                    新增清洗任务
+                  </button>
+                  <button
+                    type="button"
                     className="px-4 py-2 bg-white border border-gray-200 text-xs text-gray-600 font-bold rounded hover:bg-gray-50 transition-colors"
                   >
                     批量删除
@@ -2276,13 +2284,6 @@ export default function App() {
                     className="px-4 py-2 bg-white border border-gray-200 text-xs text-gray-600 font-bold rounded hover:bg-gray-50 transition-colors"
                   >
                     任务导出
-                  </button>
-                  <button
-                    type="button"
-                    className="p-2 text-gray-500 hover:bg-gray-100 rounded transition-colors"
-                    aria-label="刷新"
-                  >
-                    <RotateCcw size={18} />
                   </button>
                 </div>
               </div>
@@ -2394,6 +2395,154 @@ export default function App() {
                   </div>
                 </div>
               </div>
+
+              <AnimatePresence>
+                {isAddCleanTaskOpen && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      onClick={() => setIsAddCleanTaskOpen(false)}
+                      className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                    />
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                      className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden relative z-10"
+                    >
+                      <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                        <h3 className="font-bold text-gray-800">新增清洗任务</h3>
+                        <button
+                          onClick={() => setIsAddCleanTaskOpen(false)}
+                          className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                          aria-label="关闭"
+                        >
+                          <X size={20} className="text-gray-400" />
+                        </button>
+                      </div>
+
+                      <div className="p-6 space-y-6">
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium text-gray-700 flex items-center gap-1">
+                            <span className="text-red-500">*</span> 电站选择
+                          </label>
+                          <select
+                            value={addCleanTaskForm.stationName}
+                            onChange={(e) =>
+                              setAddCleanTaskForm((p) => ({ ...p, stationName: e.target.value }))
+                            }
+                            className="w-full text-xs border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                          >
+                            <option value="">请选择电站</option>
+                            {Array.from(new Set(cleanTaskList.map((t) => t.stationName))).map(
+                              (name) => (
+                                <option key={name} value={name}>
+                                  {name}
+                                </option>
+                              )
+                            )}
+                          </select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium text-gray-700 flex items-center gap-1">
+                            <span className="text-red-500">*</span> 清洗负责人（可多选）
+                          </label>
+                          <div className="flex flex-wrap gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                            {['鲁杭杰', '顾佳兴', '周焱'].map((name) => {
+                              const checked = addCleanTaskForm.owners.includes(name);
+                              return (
+                                <label key={name} className="flex items-center gap-2 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={checked}
+                                    onChange={() =>
+                                      setAddCleanTaskForm((p) => ({
+                                        ...p,
+                                        owners: checked
+                                          ? p.owners.filter((x) => x !== name)
+                                          : [...p.owners, name],
+                                      }))
+                                    }
+                                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                  />
+                                  <span className="text-xs text-gray-700">{name}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium text-gray-700 flex items-center gap-1">
+                            <span className="text-red-500">*</span> 计划清洗日期（日期区间）
+                          </label>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <input
+                              type="date"
+                              value={addCleanTaskForm.startDate}
+                              onChange={(e) =>
+                                setAddCleanTaskForm((p) => ({ ...p, startDate: e.target.value }))
+                              }
+                              className="text-xs border border-gray-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                            />
+                            <span className="text-xs text-gray-400">-</span>
+                            <input
+                              type="date"
+                              value={addCleanTaskForm.endDate}
+                              onChange={(e) =>
+                                setAddCleanTaskForm((p) => ({ ...p, endDate: e.target.value }))
+                              }
+                              className="text-xs border border-gray-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex gap-3 justify-end">
+                        <button
+                          type="button"
+                          onClick={() => setIsAddCleanTaskOpen(false)}
+                          className="px-6 py-2 border border-gray-200 text-gray-600 text-xs font-bold rounded-lg hover:bg-gray-50"
+                        >
+                          取消
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const stationName = addCleanTaskForm.stationName.trim();
+                            if (!stationName || addCleanTaskForm.owners.length === 0) return;
+                            const start = addCleanTaskForm.startDate;
+                            const end = addCleanTaskForm.endDate;
+                            if (!start || !end) return;
+                            const newId =
+                              Math.max(0, ...cleanTaskList.map((t) => t.id as number)) + 1;
+                            setCleanTaskList((prev) => [
+                              ...prev,
+                              {
+                                id: newId,
+                                stationName,
+                                person: addCleanTaskForm.owners[0] || '',
+                                phone: '',
+                                status: '未填写',
+                                startTime: `${start} 00:00:00`,
+                                endTime: `${end} 00:00:00`,
+                              },
+                            ]);
+                            setIsAddCleanTaskOpen(false);
+                            setAddCleanTaskForm({ stationName: '', owners: [], startDate: '', endDate: '' });
+                          }}
+                          className="px-6 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700"
+                        >
+                          保存
+                        </button>
+                      </div>
+                    </motion.div>
+                  </div>
+                )}
+              </AnimatePresence>
             </div>
             )
           ) : activeMenu === 'clean-record' ? (
