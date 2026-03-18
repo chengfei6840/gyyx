@@ -290,9 +290,10 @@ export default function App() {
     setDeviceFormData((prev: any) => {
       const arr = field === 'incomingLines' ? prev.incomingTempChannels : prev.outgoingTempChannels;
       const currentLen = arr?.length || 1;
-      let newArr = arr ? [...arr] : [{ a: 1, b: 2, c: 3 }];
+      const emptyRow = () => ({ pt100Index: 0, a: 1, b: 2, c: 3 });
+      let newArr = arr ? [...arr] : [emptyRow()];
       if (n > currentLen) {
-        for (let i = currentLen; i < n; i++) newArr.push({ a: 1, b: 2, c: 3 });
+        for (let i = currentLen; i < n; i++) newArr.push(emptyRow());
       } else if (n < currentLen) {
         newArr = newArr.slice(0, n);
       }
@@ -415,18 +416,40 @@ export default function App() {
     );
   };
 
+  const syncMeterRows = (
+    count: number,
+    prev: { meteringMethod: '正向' | '反向'; ratio: number }[] | undefined,
+    legacyRatio: number
+  ) => {
+    const n = Math.max(1, Math.min(50, count));
+    const ratio = Number(legacyRatio) > 0 ? Number(legacyRatio) : 1;
+    const list = prev && Array.isArray(prev) ? [...prev] : [];
+    const out: { meteringMethod: '正向' | '反向'; ratio: number }[] = [];
+    for (let i = 0; i < n; i++) {
+      if (list[i] && typeof list[i].ratio === 'number') {
+        out.push({
+          meteringMethod: list[i].meteringMethod === '反向' ? '反向' : '正向',
+          ratio: list[i].ratio,
+        });
+      } else {
+        out.push({ meteringMethod: '正向', ratio: ratio });
+      }
+    }
+    return out;
+  };
+
   const defaultGatewayForm = {
     accessDevices: [] as string[],
     gridMeterCount: 1,
-    gridMeterRatio: 1,
+    gridMeters: [{ meteringMethod: '正向' as const, ratio: 1 }],
     genMeterCount: 1,
-    genMeterRatio: 1,
+    genMeters: [{ meteringMethod: '正向' as const, ratio: 1 }],
     pt100Count: 1,
     pt100List: [{ address: '', channels: 4 as 4 | 8 | 16 }] as { address: string; channels: 4 | 8 | 16 }[],
     incomingLines: 1,
     outgoingLines: 1,
-    incomingTempChannels: [{ a: 1, b: 2, c: 3 }],
-    outgoingTempChannels: [{ a: 1, b: 2, c: 3 }],
+    incomingTempChannels: [{ pt100Index: 0, a: 1, b: 2, c: 3 }],
+    outgoingTempChannels: [{ pt100Index: 0, a: 1, b: 2, c: 3 }],
   };
   const setPt100Count = (n: number) => {
     const count = Math.max(1, Math.min(20, n));
@@ -450,13 +473,31 @@ export default function App() {
 
   const handleEditDevice = (device: any) => {
     setEditingDevice(device);
+    const gCount = device.gridMeterCount ?? 1;
+    const genCount = device.genMeterCount ?? 1;
     setDeviceFormData({
       ...defaultGatewayForm,
       ...device,
       accessDevices: device.accessDevices || [],
+      gridMeters: syncMeterRows(gCount, device.gridMeters, device.gridMeterRatio ?? 1),
+      genMeters: syncMeterRows(genCount, device.genMeters, device.genMeterRatio ?? 1),
       pt100List: device.pt100List?.length ? device.pt100List : defaultGatewayForm.pt100List,
-      incomingTempChannels: device.incomingTempChannels?.length ? device.incomingTempChannels : defaultGatewayForm.incomingTempChannels,
-      outgoingTempChannels: device.outgoingTempChannels?.length ? device.outgoingTempChannels : defaultGatewayForm.outgoingTempChannels,
+      incomingTempChannels: device.incomingTempChannels?.length
+        ? device.incomingTempChannels.map((c: any) => ({
+            pt100Index: typeof c.pt100Index === 'number' ? c.pt100Index : 0,
+            a: c.a ?? 1,
+            b: c.b ?? 2,
+            c: c.c ?? 3,
+          }))
+        : defaultGatewayForm.incomingTempChannels,
+      outgoingTempChannels: device.outgoingTempChannels?.length
+        ? device.outgoingTempChannels.map((c: any) => ({
+            pt100Index: typeof c.pt100Index === 'number' ? c.pt100Index : 0,
+            a: c.a ?? 1,
+            b: c.b ?? 2,
+            c: c.c ?? 3,
+          }))
+        : defaultGatewayForm.outgoingTempChannels,
     });
     setIsDeviceModalOpen(true);
   };
@@ -2922,27 +2963,73 @@ export default function App() {
                     {(deviceFormData.accessDevices || []).includes('上网表') && (
                       <div className="space-y-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
                         <h4 className="text-xs font-bold text-gray-700">上网表</h4>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2 max-w-xs">
+                          <label className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">电表数量</label>
+                          <input
+                            type="number"
+                            min={1}
+                            max={50}
+                            value={deviceFormData.gridMeterCount ?? 1}
+                            onChange={(e) => {
+                              const n = Number(e.target.value) || 1;
+                              setDeviceFormData((prev: any) => ({
+                                ...prev,
+                                gridMeterCount: n,
+                                gridMeters: syncMeterRows(n, prev.gridMeters, prev.gridMeters?.[0]?.ratio ?? prev.gridMeterRatio ?? 1),
+                              }));
+                            }}
+                            className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="text-[10px] text-gray-600 font-bold tracking-wider">各上网表计量方式及倍率</div>
                           <div className="space-y-2">
-                            <label className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">电表数量</label>
-                            <input
-                              type="number"
-                              min={1}
-                              value={deviceFormData.gridMeterCount ?? 1}
-                              onChange={(e) => setDeviceFormData({ ...deviceFormData, gridMeterCount: Number(e.target.value) || 1 })}
-                              className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">倍率</label>
-                            <input
-                              type="number"
-                              min={0.01}
-                              step={0.01}
-                              value={deviceFormData.gridMeterRatio ?? 1}
-                              onChange={(e) => setDeviceFormData({ ...deviceFormData, gridMeterRatio: Number(e.target.value) || 1 })}
-                              className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                            />
+                            {(deviceFormData.gridMeters || syncMeterRows(deviceFormData.gridMeterCount ?? 1, undefined, 1)).map(
+                              (row: { meteringMethod: '正向' | '反向'; ratio: number }, idx: number) => (
+                                <div
+                                  key={`grid-meter-${idx}`}
+                                  className="grid grid-cols-[72px_1fr_1fr] gap-3 items-center rounded-lg border border-gray-100 bg-white p-3"
+                                >
+                                  <span className="text-xs text-gray-600 font-medium">电表 {idx + 1}</span>
+                                  <div className="space-y-1">
+                                    <label className="text-[10px] text-gray-500">计量方式</label>
+                                    <select
+                                      value={row.meteringMethod}
+                                      onChange={(e) => {
+                                        const v = e.target.value as '正向' | '反向';
+                                        setDeviceFormData((prev: any) => {
+                                          const list = [...(prev.gridMeters || [])];
+                                          list[idx] = { ...list[idx], meteringMethod: v };
+                                          return { ...prev, gridMeters: list };
+                                        });
+                                      }}
+                                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                    >
+                                      <option value="正向">正向</option>
+                                      <option value="反向">反向</option>
+                                    </select>
+                                  </div>
+                                  <div className="space-y-1">
+                                    <label className="text-[10px] text-gray-500">倍率</label>
+                                    <input
+                                      type="number"
+                                      min={0.01}
+                                      step={0.01}
+                                      value={row.ratio}
+                                      onChange={(e) => {
+                                        const r = Number(e.target.value) || 1;
+                                        setDeviceFormData((prev: any) => {
+                                          const list = [...(prev.gridMeters || [])];
+                                          list[idx] = { ...list[idx], ratio: r };
+                                          return { ...prev, gridMeters: list };
+                                        });
+                                      }}
+                                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                    />
+                                  </div>
+                                </div>
+                              )
+                            )}
                           </div>
                         </div>
                       </div>
@@ -2952,27 +3039,73 @@ export default function App() {
                     {(deviceFormData.accessDevices || []).includes('发电表') && (
                       <div className="space-y-4 p-4 bg-amber-50/50 rounded-xl border border-amber-100">
                         <h4 className="text-xs font-bold text-gray-700">发电表</h4>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2 max-w-xs">
+                          <label className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">电表数量</label>
+                          <input
+                            type="number"
+                            min={1}
+                            max={50}
+                            value={deviceFormData.genMeterCount ?? 1}
+                            onChange={(e) => {
+                              const n = Number(e.target.value) || 1;
+                              setDeviceFormData((prev: any) => ({
+                                ...prev,
+                                genMeterCount: n,
+                                genMeters: syncMeterRows(n, prev.genMeters, prev.genMeters?.[0]?.ratio ?? prev.genMeterRatio ?? 1),
+                              }));
+                            }}
+                            className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="text-[10px] text-gray-600 font-bold tracking-wider">各发电表计量方式及倍率</div>
                           <div className="space-y-2">
-                            <label className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">电表数量</label>
-                            <input
-                              type="number"
-                              min={1}
-                              value={deviceFormData.genMeterCount ?? 1}
-                              onChange={(e) => setDeviceFormData({ ...deviceFormData, genMeterCount: Number(e.target.value) || 1 })}
-                              className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">倍率</label>
-                            <input
-                              type="number"
-                              min={0.01}
-                              step={0.01}
-                              value={deviceFormData.genMeterRatio ?? 1}
-                              onChange={(e) => setDeviceFormData({ ...deviceFormData, genMeterRatio: Number(e.target.value) || 1 })}
-                              className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                            />
+                            {(deviceFormData.genMeters || syncMeterRows(deviceFormData.genMeterCount ?? 1, undefined, 1)).map(
+                              (row: { meteringMethod: '正向' | '反向'; ratio: number }, idx: number) => (
+                                <div
+                                  key={`gen-meter-${idx}`}
+                                  className="grid grid-cols-[72px_1fr_1fr] gap-3 items-center rounded-lg border border-amber-100 bg-white p-3"
+                                >
+                                  <span className="text-xs text-gray-600 font-medium">电表 {idx + 1}</span>
+                                  <div className="space-y-1">
+                                    <label className="text-[10px] text-gray-500">计量方式</label>
+                                    <select
+                                      value={row.meteringMethod}
+                                      onChange={(e) => {
+                                        const v = e.target.value as '正向' | '反向';
+                                        setDeviceFormData((prev: any) => {
+                                          const list = [...(prev.genMeters || [])];
+                                          list[idx] = { ...list[idx], meteringMethod: v };
+                                          return { ...prev, genMeters: list };
+                                        });
+                                      }}
+                                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                    >
+                                      <option value="正向">正向</option>
+                                      <option value="反向">反向</option>
+                                    </select>
+                                  </div>
+                                  <div className="space-y-1">
+                                    <label className="text-[10px] text-gray-500">倍率</label>
+                                    <input
+                                      type="number"
+                                      min={0.01}
+                                      step={0.01}
+                                      value={row.ratio}
+                                      onChange={(e) => {
+                                        const r = Number(e.target.value) || 1;
+                                        setDeviceFormData((prev: any) => {
+                                          const list = [...(prev.genMeters || [])];
+                                          list[idx] = { ...list[idx], ratio: r };
+                                          return { ...prev, genMeters: list };
+                                        });
+                                      }}
+                                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                    />
+                                  </div>
+                                </div>
+                              )
+                            )}
                           </div>
                         </div>
                       </div>
@@ -3058,46 +3191,98 @@ export default function App() {
                         <div className="space-y-3">
                           <div className="text-[10px] text-gray-600 font-bold">进线 · 三相线缆对应变送器第几路温度传感器</div>
                           <div className="space-y-2">
-                            {(deviceFormData.incomingTempChannels || [{ a: 1, b: 2, c: 3 }]).map((ch: { a: number; b: number; c: number }, idx: number) => (
-                              <div key={'in-' + idx} className="grid grid-cols-4 gap-2 items-center rounded-lg border border-gray-100 bg-white p-2">
-                                <span className="text-xs font-medium text-gray-600 col-span-1">进线{idx + 1}</span>
-                                <div className="col-span-1">
+                            {(deviceFormData.incomingTempChannels || [{ pt100Index: 0, a: 1, b: 2, c: 3 }]).map((ch: { pt100Index?: number; a: number; b: number; c: number }, idx: number) => {
+                              const ptCount = Math.max(1, deviceFormData.pt100Count ?? 1);
+                              const rawList = (deviceFormData.pt100List || []).slice(0, ptCount);
+                              const list = rawList.length ? rawList : [{ address: '' }];
+                              const safePt = Math.min(Math.max(0, ch.pt100Index ?? 0), list.length - 1);
+                              return (
+                              <div key={'in-' + idx} className="grid grid-cols-1 sm:grid-cols-[72px_minmax(0,1.2fr)_repeat(3,minmax(0,1fr))] gap-2 items-end rounded-lg border border-gray-100 bg-white p-2">
+                                <span className="text-xs font-medium text-gray-600 sm:pt-6">进线{idx + 1}</span>
+                                <div className="min-w-0">
+                                  <label className="text-[10px] text-gray-400 block mb-0.5">变送器地址</label>
+                                  <select
+                                    value={safePt}
+                                    onChange={(e) =>
+                                      setDeviceFormData((p: any) => ({
+                                        ...p,
+                                        incomingTempChannels: p.incomingTempChannels.map((c: any, i: number) =>
+                                          i === idx ? { ...c, pt100Index: Number(e.target.value) } : c
+                                        ),
+                                      }))
+                                    }
+                                    className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-white"
+                                  >
+                                    {list.map((p: { address: string }, i: number) => (
+                                      <option key={i} value={i}>
+                                        {(p.address && String(p.address).trim()) ? p.address.trim() : `变送器${i + 1}（未填地址）`}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                                <div>
                                   <label className="text-[10px] text-gray-400 block">A相第几路</label>
                                   <input type="number" min={1} value={ch.a} onChange={(e) => setDeviceFormData((p: any) => ({ ...p, incomingTempChannels: p.incomingTempChannels.map((c: any, i: number) => i === idx ? { ...c, a: Number(e.target.value) || 1 } : c) }))} className="w-full px-2 py-1 text-xs border border-gray-200 rounded" />
                                 </div>
-                                <div className="col-span-1">
+                                <div>
                                   <label className="text-[10px] text-gray-400 block">B相第几路</label>
                                   <input type="number" min={1} value={ch.b} onChange={(e) => setDeviceFormData((p: any) => ({ ...p, incomingTempChannels: p.incomingTempChannels.map((c: any, i: number) => i === idx ? { ...c, b: Number(e.target.value) || 1 } : c) }))} className="w-full px-2 py-1 text-xs border border-gray-200 rounded" />
                                 </div>
-                                <div className="col-span-1">
+                                <div>
                                   <label className="text-[10px] text-gray-400 block">C相第几路</label>
                                   <input type="number" min={1} value={ch.c} onChange={(e) => setDeviceFormData((p: any) => ({ ...p, incomingTempChannels: p.incomingTempChannels.map((c: any, i: number) => i === idx ? { ...c, c: Number(e.target.value) || 1 } : c) }))} className="w-full px-2 py-1 text-xs border border-gray-200 rounded" />
                                 </div>
                               </div>
-                            ))}
+                            );})}
                           </div>
                         </div>
                         {/* 出线 ABC 三相变送器路数 */}
                         <div className="space-y-3">
                           <div className="text-[10px] text-gray-600 font-bold">出线 · 三相线缆对应变送器第几路温度传感器</div>
                           <div className="space-y-2">
-                            {(deviceFormData.outgoingTempChannels || [{ a: 1, b: 2, c: 3 }]).map((ch: { a: number; b: number; c: number }, idx: number) => (
-                              <div key={'out-' + idx} className="grid grid-cols-4 gap-2 items-center rounded-lg border border-gray-100 bg-white p-2">
-                                <span className="text-xs font-medium text-gray-600 col-span-1">出线{idx + 1}</span>
-                                <div className="col-span-1">
+                            {(deviceFormData.outgoingTempChannels || [{ pt100Index: 0, a: 1, b: 2, c: 3 }]).map((ch: { pt100Index?: number; a: number; b: number; c: number }, idx: number) => {
+                              const ptCount = Math.max(1, deviceFormData.pt100Count ?? 1);
+                              const rawList = (deviceFormData.pt100List || []).slice(0, ptCount);
+                              const list = rawList.length ? rawList : [{ address: '' }];
+                              const safePt = Math.min(Math.max(0, ch.pt100Index ?? 0), list.length - 1);
+                              return (
+                              <div key={'out-' + idx} className="grid grid-cols-1 sm:grid-cols-[72px_minmax(0,1.2fr)_repeat(3,minmax(0,1fr))] gap-2 items-end rounded-lg border border-gray-100 bg-white p-2">
+                                <span className="text-xs font-medium text-gray-600 sm:pt-6">出线{idx + 1}</span>
+                                <div className="min-w-0">
+                                  <label className="text-[10px] text-gray-400 block mb-0.5">变送器地址</label>
+                                  <select
+                                    value={safePt}
+                                    onChange={(e) =>
+                                      setDeviceFormData((p: any) => ({
+                                        ...p,
+                                        outgoingTempChannels: p.outgoingTempChannels.map((c: any, i: number) =>
+                                          i === idx ? { ...c, pt100Index: Number(e.target.value) } : c
+                                        ),
+                                      }))
+                                    }
+                                    className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-white"
+                                  >
+                                    {list.map((p: { address: string }, i: number) => (
+                                      <option key={i} value={i}>
+                                        {(p.address && String(p.address).trim()) ? p.address.trim() : `变送器${i + 1}（未填地址）`}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                                <div>
                                   <label className="text-[10px] text-gray-400 block">A相第几路</label>
                                   <input type="number" min={1} value={ch.a} onChange={(e) => setDeviceFormData((p: any) => ({ ...p, outgoingTempChannels: p.outgoingTempChannels.map((c: any, i: number) => i === idx ? { ...c, a: Number(e.target.value) || 1 } : c) }))} className="w-full px-2 py-1 text-xs border border-gray-200 rounded" />
                                 </div>
-                                <div className="col-span-1">
+                                <div>
                                   <label className="text-[10px] text-gray-400 block">B相第几路</label>
                                   <input type="number" min={1} value={ch.b} onChange={(e) => setDeviceFormData((p: any) => ({ ...p, outgoingTempChannels: p.outgoingTempChannels.map((c: any, i: number) => i === idx ? { ...c, b: Number(e.target.value) || 1 } : c) }))} className="w-full px-2 py-1 text-xs border border-gray-200 rounded" />
                                 </div>
-                                <div className="col-span-1">
+                                <div>
                                   <label className="text-[10px] text-gray-400 block">C相第几路</label>
                                   <input type="number" min={1} value={ch.c} onChange={(e) => setDeviceFormData((p: any) => ({ ...p, outgoingTempChannels: p.outgoingTempChannels.map((c: any, i: number) => i === idx ? { ...c, c: Number(e.target.value) || 1 } : c) }))} className="w-full px-2 py-1 text-xs border border-gray-200 rounded" />
                                 </div>
                               </div>
-                            ))}
+                            );})}
                           </div>
                         </div>
                       </div>
