@@ -369,6 +369,7 @@ export default function App() {
     imagesBefore: [] as string[],
     imagesDuring: [] as string[],
     imagesAfter: [] as string[],
+    coverImage: '' as string,
     cleanMethod: '' as '' | '人工' | '高压水枪' | '机器人',
     workDate: '',
     weather: '' as '' | '晴' | '阴' | '多云',
@@ -2158,6 +2159,14 @@ export default function App() {
                   </div>
                 </Card>
 
+                {/* 清洗报告封面图片 */}
+                <Card title="清洗报告封面图片">
+                  <div className="max-w-md">
+                    <div className="text-xs text-gray-500 mb-2">封面图片（仅1张）</div>
+                    <div className="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center text-gray-400 text-xs">点击上传，仅限1张</div>
+                  </div>
+                </Card>
+
                 {/* 清洗详情 */}
                 <Card title="清洗详情">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -2504,6 +2513,14 @@ export default function App() {
                       <div className="text-xs font-bold text-gray-700 mb-2">清洗后图片（清洁完状态）</div>
                       <div className="border border-gray-200 rounded-lg p-6 text-center text-gray-400 text-xs bg-gray-50/50">图片展示区</div>
                     </div>
+                  </div>
+                </Card>
+
+                {/* 清洗报告封面图片 - 只读 */}
+                <Card title="清洗报告封面图片">
+                  <div className="max-w-md">
+                    <div className="text-xs text-gray-500 mb-2">封面图片（仅1张）</div>
+                    <div className="border border-gray-200 rounded-lg p-6 text-center text-gray-400 text-xs bg-gray-50/50">图片展示区</div>
                   </div>
                 </Card>
 
