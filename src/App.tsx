@@ -352,6 +352,7 @@ export default function App() {
   });
   const [cleanTaskFormData, setCleanTaskFormData] = React.useState({
     cleanIndex: undefined as number | undefined,
+    cleanTotalCount: 3,
     dirtyLevel: '' as '' | '轻微' | '中等' | '严重',
     pollutant: '' as '' | '积灰' | '鸟粪' | '泥沙' | '油污' | '其他',
     pollutantOther: '',
@@ -1973,7 +1974,20 @@ export default function App() {
                         }
                         className="w-14 border-b border-red-300 bg-transparent text-center focus:outline-none focus:border-red-500"
                       />
-                      次清洗
+                      次清洗，总共清洗
+                      <input
+                        type="number"
+                        min={1}
+                        value={cleanTaskFormData.cleanIndex || ''}
+                        onChange={(e) =>
+                          setCleanTaskFormData((p) => ({
+                            ...p,
+                            cleanIndex: e.target.value ? Number(e.target.value) : undefined,
+                          }))
+                        }
+                        className="w-14 border-b border-red-300 bg-transparent text-center focus:outline-none focus:border-red-500"
+                      />
+                      次
                     </div>
                     <button
                       type="button"
