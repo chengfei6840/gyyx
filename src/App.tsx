@@ -288,6 +288,129 @@ const UploadBox = ({
   );
 };
 
+const SIG_PAD_W = 560;
+const SIG_PAD_H = 140;
+
+const SignaturePad = ({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (dataUrl: string) => void;
+}) => {
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
+  const drawingRef = React.useRef(false);
+  const lastRef = React.useRef<{ x: number; y: number } | null>(null);
+
+  React.useEffect(() => {
+    const c = canvasRef.current;
+    if (!c) return;
+    const ctx = c.getContext('2d');
+    if (!ctx) return;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, SIG_PAD_W, SIG_PAD_H);
+    const v = value?.trim();
+    if (v?.startsWith('data:image')) {
+      const img = new Image();
+      img.onload = () => {
+        if (!canvasRef.current) return;
+        const g = canvasRef.current.getContext('2d');
+        if (!g) return;
+        g.fillStyle = '#ffffff';
+        g.fillRect(0, 0, SIG_PAD_W, SIG_PAD_H);
+        g.drawImage(img, 0, 0, SIG_PAD_W, SIG_PAD_H);
+      };
+      img.src = v;
+    }
+  }, [value]);
+
+  const getPos = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    const c = canvasRef.current;
+    if (!c) return { x: 0, y: 0 };
+    const r = c.getBoundingClientRect();
+    const sx = SIG_PAD_W / r.width;
+    const sy = SIG_PAD_H / r.height;
+    if ('touches' in e) {
+      const te = e as React.TouchEvent;
+      const t = te.touches[0] ?? te.changedTouches[0];
+      return { x: (t.clientX - r.left) * sx, y: (t.clientY - r.top) * sy };
+    }
+    const me = e as React.MouseEvent;
+    return { x: (me.clientX - r.left) * sx, y: (me.clientY - r.top) * sy };
+  };
+
+  const startDraw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    drawingRef.current = true;
+    lastRef.current = getPos(e);
+  };
+
+  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    if (!drawingRef.current) return;
+    e.preventDefault();
+    const c = canvasRef.current;
+    const ctx = c?.getContext('2d');
+    const last = lastRef.current;
+    if (!ctx || !last) return;
+    const p = getPos(e);
+    ctx.strokeStyle = '#111827';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(last.x, last.y);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+    lastRef.current = p;
+  };
+
+  const endDraw = () => {
+    if (!drawingRef.current) return;
+    drawingRef.current = false;
+    lastRef.current = null;
+    const c = canvasRef.current;
+    if (c) onChange(c.toDataURL('image/png'));
+  };
+
+  const clearPad = () => {
+    const c = canvasRef.current;
+    if (!c) return;
+    const ctx = c.getContext('2d');
+    if (!ctx) return;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, SIG_PAD_W, SIG_PAD_H);
+    onChange('');
+  };
+
+  return (
+    <div className="space-y-2">
+      <canvas
+        ref={canvasRef}
+        width={SIG_PAD_W}
+        height={SIG_PAD_H}
+        className="w-full max-w-xl border border-gray-200 rounded-lg bg-white touch-none cursor-crosshair select-none"
+        onMouseDown={startDraw}
+        onMouseMove={draw}
+        onMouseUp={endDraw}
+        onMouseLeave={endDraw}
+        onTouchStart={startDraw}
+        onTouchMove={draw}
+        onTouchEnd={endDraw}
+      />
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={clearPad}
+          className="text-xs px-3 py-1.5 border border-gray-200 rounded text-gray-600 hover:bg-gray-50"
+        >
+          清除重写
+        </button>
+        <span className="text-[11px] text-gray-400">请在上方区域手写签名（支持鼠标/触屏）</span>
+      </div>
+    </div>
+  );
+};
+
 // --- Main App ---
 
 export default function App() {
@@ -466,8 +589,9 @@ export default function App() {
       discoverDate: '2026-03-20',
       discoverTime: '2026-03-20 09:15:00',
       principal: '张三',
-      processStatus: '处理中',
-      processDate: '2026-03-21 14:30:00',
+      principalSignature: '',
+      processStatus: '未处理',
+      processDate: '',
       clockInPhotos: [] as string[],
       sections: [
         { id: 1, description: '逆变器通讯异常，发电功率波动。', descImages: [], reason: '通讯模块接触不良。', result: '重新插拔并加固连接，通讯恢复正常。', resultImages: [] },
@@ -479,6 +603,7 @@ export default function App() {
       discoverDate: '2026-03-18',
       discoverTime: '2026-03-18 08:45:00',
       principal: '李四',
+      principalSignature: '',
       processStatus: '已处理',
       processDate: '2026-03-19 11:20:00',
       clockInPhotos: [] as string[],
@@ -495,7 +620,7 @@ export default function App() {
     processDate: '',
     principal: '',
   });
-  const [isFaultFormOpen, setIsFaultFormOpen] = React.useState(false);
+  const [isFaultAddPage, setIsFaultAddPage] = React.useState(false);
   const [selectedFault, setSelectedFault] = React.useState<any | null>(null);
   const [isFaultEditing, setIsFaultEditing] = React.useState(false);
   const [faultDetailForm, setFaultDetailForm] = React.useState<any | null>(null);
@@ -503,7 +628,7 @@ export default function App() {
     stationName: '',
     discoverDate: '',
     principal: '',
-    processStatus: '未处理',
+    principalSignature: '',
     processDate: '',
     clockInPhotos: [] as string[],
     sections: [
@@ -580,7 +705,8 @@ export default function App() {
       discoverDate: faultForm.discoverDate,
       discoverTime,
       principal: faultForm.principal.trim(),
-      processStatus: faultForm.processStatus || '未处理',
+      principalSignature: faultForm.principalSignature || '',
+      processStatus: '未处理',
       processDate,
       clockInPhotos: faultForm.clockInPhotos,
       sections: faultForm.sections,
@@ -590,15 +716,29 @@ export default function App() {
       stationName: '',
       discoverDate: '',
       principal: '',
-      processStatus: '未处理',
+      principalSignature: '',
       processDate: '',
       clockInPhotos: [],
       sections: [{ id: 1, description: '', descImages: [], reason: '', result: '', resultImages: [] }],
     });
-    setIsFaultFormOpen(false);
+    setIsFaultAddPage(false);
+  };
+
+  const exitFaultAddPage = () => {
+    setIsFaultAddPage(false);
+    setFaultForm({
+      stationName: '',
+      discoverDate: '',
+      principal: '',
+      principalSignature: '',
+      processDate: '',
+      clockInPhotos: [],
+      sections: [{ id: 1, description: '', descImages: [], reason: '', result: '', resultImages: [] }],
+    });
   };
 
   const openFaultDetail = (row: any) => {
+    setIsFaultAddPage(false);
     const clone = JSON.parse(JSON.stringify(row));
     setSelectedFault(clone);
     setFaultDetailForm(clone);
@@ -656,6 +796,35 @@ export default function App() {
         y = 60;
       }
     });
+
+    let fy = y;
+    if (fy > 650) {
+      doc.addPage();
+      fy = 60;
+    } else {
+      fy += 20;
+    }
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.text('负责人签字', margin, fy);
+    fy += 18;
+    doc.setFont('helvetica', 'normal');
+    const sigRaw = fault.principalSignature?.trim?.() ?? '';
+    if (sigRaw.startsWith('data:image')) {
+      const fmt = sigRaw.includes('image/png') ? 'PNG' : 'JPEG';
+      try {
+        doc.addImage(sigRaw, fmt, margin, fy, 160, 48);
+      } catch {
+        doc.text('（签字图写入失败）', margin, fy + 12);
+      }
+    } else if (sigRaw) {
+      const legacy = doc.splitTextToSize(sigRaw, pageWidth - margin * 2);
+      doc.text(legacy, margin, fy);
+    } else {
+      doc.setTextColor(160, 160, 160);
+      doc.text('暂无签字', margin, fy + 8);
+      doc.setTextColor(0, 0, 0);
+    }
 
     doc.save(`电站故障处理信息-${fault.stationName}-${fault.discoverDate}.pdf`);
   };
@@ -919,7 +1088,10 @@ export default function App() {
                       icon={ChevronRight}
                       label="电站故障处理信息"
                       active={activeMenu === 'fault-info'}
-                      onClick={() => setActiveMenu('fault-info')}
+                      onClick={() => {
+                        setActiveMenu('fault-info');
+                        exitFaultAddPage();
+                      }}
                     />
                   </motion.div>
                 )}
@@ -1038,7 +1210,9 @@ export default function App() {
                    activeMenu === 'clean-plan' ? '清洗计划' :
                    activeMenu === 'clean-task' ? '清洗任务' :
                    activeMenu === 'clean-record' ? '清洗记录' :
-                   activeMenu === 'fault-info' ? '电站故障处理信息' : '电站概览'}
+                   activeMenu === 'fault-info'
+                     ? (isFaultAddPage ? '新增故障信息' : selectedFault ? '电站故障处理信息 · 详情' : '电站故障处理信息')
+                     : '电站概览'}
                 </span>
               </>
             )}
@@ -2810,10 +2984,26 @@ export default function App() {
           ) : activeMenu === 'fault-info' ? (
             selectedFault ? (
               <div className="space-y-6 pb-8">
-                <div className="flex items-start justify-between">
-                  <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                    <span className="w-1 h-5 bg-blue-500 rounded-full flex-shrink-0" />
-                    电站故障处理信息详情
+                <div className="flex items-start justify-between gap-4 flex-wrap">
+                  <h2 className="text-lg font-bold text-gray-800 flex flex-wrap items-center gap-3 min-w-0">
+                    <span className="flex items-center gap-2">
+                      <span className="w-1 h-5 bg-blue-500 rounded-full flex-shrink-0" />
+                      电站故障处理信息详情
+                    </span>
+                    {!isFaultEditing && faultDetailForm?.processStatus && (
+                      <span
+                        className={cn(
+                          'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap',
+                          faultDetailForm.processStatus === '已处理'
+                            ? 'bg-blue-50 text-blue-700'
+                            : faultDetailForm.processStatus === '处理中'
+                              ? 'bg-amber-50 text-amber-700'
+                              : 'bg-gray-100 text-gray-700'
+                        )}
+                      >
+                        处理状态：{faultDetailForm.processStatus}
+                      </span>
+                    )}
                   </h2>
                   <div className="flex items-center gap-3">
                     {isFaultEditing ? (
@@ -2848,7 +3038,7 @@ export default function App() {
                     )}
                     <button
                       type="button"
-                      onClick={() => exportFaultPdf(selectedFault)}
+                      onClick={() => faultDetailForm && exportFaultPdf(faultDetailForm)}
                       className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-1"
                     >
                       <Download size={14} /> 导出 PDF
@@ -2859,6 +3049,7 @@ export default function App() {
                         setSelectedFault(null);
                         setFaultDetailForm(null);
                         setIsFaultEditing(false);
+                        setIsFaultAddPage(false);
                       }}
                       className="text-xs text-gray-500 hover:text-blue-600 flex items-center gap-1"
                     >
@@ -2897,7 +3088,7 @@ export default function App() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="text-xs font-medium text-gray-700">负责人</label>
                       <input
@@ -2910,22 +3101,6 @@ export default function App() {
                           !isFaultEditing && "bg-gray-50 text-gray-500"
                         )}
                       />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium text-gray-700">处理状态</label>
-                      <select
-                        disabled={!isFaultEditing}
-                        value={faultDetailForm?.processStatus || '未处理'}
-                        onChange={(e) => setFaultDetailForm((prev: any) => ({ ...prev, processStatus: e.target.value }))}
-                        className={cn(
-                          "w-full text-xs border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20",
-                          !isFaultEditing && "bg-gray-50 text-gray-500"
-                        )}
-                      >
-                        <option value="未处理">未处理</option>
-                        <option value="处理中">处理中</option>
-                        <option value="已处理">已处理</option>
-                      </select>
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-medium text-gray-700">处理时间</label>
@@ -3027,6 +3202,186 @@ export default function App() {
                       + 增加一个故障项（故障描述/故障原因/处理结果）
                     </button>
                   )}
+
+                  <div className="border-t border-gray-100 pt-4 mt-2 space-y-2">
+                    <label className="text-xs font-medium text-gray-700">负责人签字（手写）</label>
+                    {isFaultEditing ? (
+                      <SignaturePad
+                        value={faultDetailForm?.principalSignature ?? ''}
+                        onChange={(dataUrl) => setFaultDetailForm((prev: any) => ({ ...prev, principalSignature: dataUrl }))}
+                      />
+                    ) : (
+                      <div className="min-h-[100px] border border-gray-200 rounded-lg bg-gray-50 flex items-center justify-center p-4">
+                        {faultDetailForm?.principalSignature?.startsWith('data:image') ? (
+                          <img
+                            src={faultDetailForm.principalSignature}
+                            alt="负责人签字"
+                            className="max-h-32 w-auto object-contain"
+                          />
+                        ) : faultDetailForm?.principalSignature ? (
+                          <span className="text-xs text-gray-600">{faultDetailForm.principalSignature}</span>
+                        ) : (
+                          <span className="text-xs text-gray-400">暂无手写签字，点击「编辑」后可签字</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : isFaultAddPage ? (
+              <div className="space-y-6 pb-8">
+                <div className="flex items-start justify-between gap-4 flex-wrap">
+                  <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <span className="w-1 h-5 bg-blue-500 rounded-full flex-shrink-0" />
+                    新增电站故障处理信息
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={exitFaultAddPage}
+                    className="text-xs text-gray-500 hover:text-blue-600 flex items-center gap-1"
+                  >
+                    <RotateCcw size={14} /> 返回列表
+                  </button>
+                </div>
+
+                <div className="bg-white rounded-xl border border-gray-100 p-6 max-w-5xl mx-auto space-y-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium text-gray-700"><span className="text-red-500">*</span> 电站名称</label>
+                      <input
+                        type="text"
+                        value={faultForm.stationName}
+                        onChange={(e) => setFaultForm((prev: any) => ({ ...prev, stationName: e.target.value }))}
+                        placeholder="请输入电站名称"
+                        className="w-full text-xs border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium text-gray-700"><span className="text-red-500">*</span> 发现日期</label>
+                      <input
+                        type="date"
+                        value={faultForm.discoverDate}
+                        onChange={(e) => setFaultForm((prev: any) => ({ ...prev, discoverDate: e.target.value }))}
+                        className="w-full text-xs border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium text-gray-700"><span className="text-red-500">*</span> 负责人</label>
+                      <input
+                        type="text"
+                        value={faultForm.principal}
+                        onChange={(e) => setFaultForm((prev: any) => ({ ...prev, principal: e.target.value }))}
+                        placeholder="请输入负责人"
+                        className="w-full text-xs border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium text-gray-700">处理时间</label>
+                      <input
+                        type="date"
+                        value={faultForm.processDate}
+                        onChange={(e) => setFaultForm((prev: any) => ({ ...prev, processDate: e.target.value }))}
+                        className="w-full text-xs border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-gray-700">打卡照（最多1张）</label>
+                    <UploadBox
+                      hint="点击上传，仅限1张"
+                      multiple={false}
+                      onChange={(files) => {
+                        const names = Array.from(files || []).slice(0, 1).map((f: any) => (f as File).name);
+                        setFaultForm((prev: any) => ({ ...prev, clockInPhotos: names }));
+                      }}
+                    />
+                    <div className="text-[11px] text-gray-400">已选 {faultForm.clockInPhotos.length} 张</div>
+                  </div>
+
+                  <div className="space-y-4">
+                    {faultForm.sections.map((section: any, index: number) => (
+                      <div key={section.id} className="border border-gray-200 rounded-lg p-4 space-y-3">
+                        <div className="text-sm font-bold text-gray-700">故障项 {index + 1}</div>
+                        <div className="space-y-2">
+                          <label className="text-xs text-gray-600">故障描述（每项图片不超过10张）</label>
+                          <textarea
+                            rows={3}
+                            value={section.description}
+                            onChange={(e) => updateFaultSection(section.id, 'description', e.target.value)}
+                            className="w-full text-xs border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none"
+                            placeholder="请输入故障描述"
+                          />
+                          <UploadBox
+                            hint="点击上传，最多10张"
+                            onChange={(files) => updateFaultSectionImages(section.id, 'descImages', files)}
+                          />
+                          <div className="text-[11px] text-gray-400">已选 {section.descImages.length} 张（最多10张）</div>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs text-gray-600">故障原因（文字）</label>
+                          <textarea
+                            rows={2}
+                            value={section.reason}
+                            onChange={(e) => updateFaultSection(section.id, 'reason', e.target.value)}
+                            className="w-full text-xs border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none"
+                            placeholder="请输入故障原因"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs text-gray-600">处理结果（每项图片不超过10张）</label>
+                          <textarea
+                            rows={3}
+                            value={section.result}
+                            onChange={(e) => updateFaultSection(section.id, 'result', e.target.value)}
+                            className="w-full text-xs border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none"
+                            placeholder="请输入处理结果"
+                          />
+                          <UploadBox
+                            hint="点击上传，最多10张"
+                            onChange={(files) => updateFaultSectionImages(section.id, 'resultImages', files)}
+                          />
+                          <div className="text-[11px] text-gray-400">已选 {section.resultImages.length} 张（最多10张）</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={addFaultSection}
+                    className="text-xs px-3 py-1.5 border border-dashed border-blue-300 text-blue-600 rounded hover:bg-blue-50"
+                  >
+                    + 增加一个故障项（故障描述/故障原因/处理结果）
+                  </button>
+
+                  <div className="border-t border-gray-100 pt-4 space-y-2">
+                    <label className="text-xs font-medium text-gray-700">负责人签字（手写）</label>
+                    <SignaturePad
+                      value={faultForm.principalSignature}
+                      onChange={(dataUrl) => setFaultForm((prev: any) => ({ ...prev, principalSignature: dataUrl }))}
+                    />
+                  </div>
+                </div>
+
+                <div className="max-w-5xl mx-auto flex flex-wrap justify-end gap-3 px-1">
+                  <button
+                    type="button"
+                    onClick={exitFaultAddPage}
+                    className="px-6 py-2 bg-white border border-gray-200 text-gray-600 text-xs font-bold rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    取消
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCreateFault}
+                    className="px-6 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    保存
+                  </button>
                 </div>
               </div>
             ) : (
@@ -3060,7 +3415,6 @@ export default function App() {
                     >
                       <option value="">全部</option>
                       <option value="未处理">未处理</option>
-                      <option value="处理中">处理中</option>
                       <option value="已处理">已处理</option>
                     </select>
                   </div>
@@ -3093,7 +3447,7 @@ export default function App() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setIsFaultFormOpen(true)}
+                      onClick={() => setIsFaultAddPage(true)}
                       className="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded hover:bg-blue-700 transition-colors flex items-center gap-1"
                     >
                       <Plus size={14} /> 新增故障信息
@@ -3407,167 +3761,6 @@ export default function App() {
         </div>
         <div>© 2026 宁波光曜运维技术有限公司</div>
       </footer>
-
-      <AnimatePresence>
-        {isFaultFormOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsFaultFormOpen(false)}
-              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden relative z-10"
-            >
-              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                <h3 className="font-bold text-gray-800">新增电站故障处理信息</h3>
-                <button onClick={() => setIsFaultFormOpen(false)} className="p-1 hover:bg-gray-100 rounded-full transition-colors">
-                  <X size={20} className="text-gray-400" />
-                </button>
-              </div>
-              <div className="p-6 space-y-5 overflow-y-auto max-h-[calc(90vh-120px)]">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-xs font-medium text-gray-700"><span className="text-red-500">*</span> 电站名称</label>
-                    <input
-                      type="text"
-                      value={faultForm.stationName}
-                      onChange={(e) => setFaultForm((prev: any) => ({ ...prev, stationName: e.target.value }))}
-                      placeholder="请输入电站名称"
-                      className="w-full text-xs border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-medium text-gray-700"><span className="text-red-500">*</span> 发现日期</label>
-                    <input
-                      type="date"
-                      value={faultForm.discoverDate}
-                      onChange={(e) => setFaultForm((prev: any) => ({ ...prev, discoverDate: e.target.value }))}
-                      className="w-full text-xs border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-xs font-medium text-gray-700"><span className="text-red-500">*</span> 负责人</label>
-                    <input
-                      type="text"
-                      value={faultForm.principal}
-                      onChange={(e) => setFaultForm((prev: any) => ({ ...prev, principal: e.target.value }))}
-                      placeholder="请输入负责人"
-                      className="w-full text-xs border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-medium text-gray-700">处理状态</label>
-                    <select
-                      value={faultForm.processStatus}
-                      onChange={(e) => setFaultForm((prev: any) => ({ ...prev, processStatus: e.target.value }))}
-                      className="w-full text-xs border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                    >
-                      <option value="未处理">未处理</option>
-                      <option value="处理中">处理中</option>
-                      <option value="已处理">已处理</option>
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-medium text-gray-700">处理时间</label>
-                    <input
-                      type="date"
-                      value={faultForm.processDate}
-                      onChange={(e) => setFaultForm((prev: any) => ({ ...prev, processDate: e.target.value }))}
-                      className="w-full text-xs border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-gray-700">打卡照（最多1张）</label>
-                  <UploadBox
-                    hint="点击上传，仅限1张"
-                    multiple={false}
-                    onChange={(files) => {
-                      const names = Array.from(files || []).slice(0, 1).map((f: any) => (f as File).name);
-                      setFaultForm((prev: any) => ({ ...prev, clockInPhotos: names }));
-                    }}
-                  />
-                  <div className="text-[11px] text-gray-400">已选 {faultForm.clockInPhotos.length} 张</div>
-                </div>
-
-                <div className="space-y-4">
-                  {faultForm.sections.map((section: any, index: number) => (
-                    <div key={section.id} className="border border-gray-200 rounded-lg p-4 space-y-3">
-                      <div className="text-sm font-bold text-gray-700">故障项 {index + 1}</div>
-                      <div className="space-y-2">
-                        <label className="text-xs text-gray-600">故障描述（每项图片不超过10张）</label>
-                        <textarea
-                          rows={3}
-                          value={section.description}
-                          onChange={(e) => updateFaultSection(section.id, 'description', e.target.value)}
-                          className="w-full text-xs border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none"
-                          placeholder="请输入故障描述"
-                        />
-                        <UploadBox
-                          hint="点击上传，最多10张"
-                          onChange={(files) => updateFaultSectionImages(section.id, 'descImages', files)}
-                        />
-                        <div className="text-[11px] text-gray-400">已选 {section.descImages.length} 张（最多10张）</div>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-xs text-gray-600">故障原因（文字）</label>
-                        <textarea
-                          rows={2}
-                          value={section.reason}
-                          onChange={(e) => updateFaultSection(section.id, 'reason', e.target.value)}
-                          className="w-full text-xs border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none"
-                          placeholder="请输入故障原因"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-xs text-gray-600">处理结果（每项图片不超过10张）</label>
-                        <textarea
-                          rows={3}
-                          value={section.result}
-                          onChange={(e) => updateFaultSection(section.id, 'result', e.target.value)}
-                          className="w-full text-xs border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none"
-                          placeholder="请输入处理结果"
-                        />
-                        <UploadBox
-                          hint="点击上传，最多10张"
-                          onChange={(files) => updateFaultSectionImages(section.id, 'resultImages', files)}
-                        />
-                        <div className="text-[11px] text-gray-400">已选 {section.resultImages.length} 张（最多10张）</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={addFaultSection}
-                  className="text-xs px-3 py-1.5 border border-dashed border-blue-300 text-blue-600 rounded hover:bg-blue-50"
-                >
-                  + 增加一个故障项（故障描述/故障原因/处理结果）
-                </button>
-              </div>
-              <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
-                <button onClick={() => setIsFaultFormOpen(false)} className="px-6 py-2 bg-white border border-gray-200 text-gray-600 text-xs font-bold rounded-lg hover:bg-gray-50 transition-colors">
-                  取消
-                </button>
-                <button onClick={handleCreateFault} className="px-6 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-colors">
-                  保存
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
 
       {/* Add Alarm Modal */}
       <AnimatePresence>
