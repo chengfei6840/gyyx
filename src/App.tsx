@@ -225,7 +225,7 @@ const SidebarItem = ({ icon: Icon, label, active, onClick, hasSubmenu }: { icon:
 
 const Card = ({ title, children, className, extra }: { title: string, children: React.ReactNode, className?: string, extra?: React.ReactNode }) => (
   <div className={cn("bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden flex flex-col", className)}>
-    <div className="px-4 py-3 border-bottom border-gray-50 flex items-center justify-between bg-gray-50/30">
+    <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/30">
       <h3 className="text-sm font-bold text-gray-700 flex items-center gap-2">
         <div className="w-1 h-4 bg-blue-500 rounded-full" />
         {title}
@@ -414,7 +414,7 @@ const SignaturePad = ({
 // --- Main App ---
 
 export default function App() {
-  const [activeTab, setActiveTab] = React.useState<Tab>('ops');
+  const [activeTab, setActiveTab] = React.useState<Tab>('station');
   const [activeMenu, setActiveMenu] = React.useState<MenuId>('clean-task');
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
   const [expandedMenus, setExpandedMenus] = React.useState<string[]>(['smart-ops', 'comprehensive-mgmt']);
@@ -1072,6 +1072,12 @@ export default function App() {
                     exit={{ height: 0, opacity: 0 }}
                     className="overflow-hidden bg-blue-900/30"
                   >
+                    <SidebarItem
+                      icon={ChevronRight}
+                      label="清洗计划"
+                      active={activeMenu === 'clean-plan'}
+                      onClick={() => setActiveMenu('clean-plan')}
+                    />
                     <SidebarItem
                       icon={ChevronRight}
                       label="清洗任务"
@@ -2531,7 +2537,7 @@ export default function App() {
                       </div>
                     </div>
                     <div>
-                      <div className="text-sm font-bold text-gray-700 mb-3">3、其他异常记录</div>
+                      <div className="text-sm font-bold text-gray-700 mb-3">3、其他异常��录</div>
                       <div className="pl-2 space-y-3">
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-gray-600">是否有其他异常</span>
@@ -3053,7 +3059,7 @@ export default function App() {
                       }}
                       className="text-xs text-gray-500 hover:text-blue-600 flex items-center gap-1"
                     >
-                      <RotateCcw size={14} /> 返回列表
+                      <RotateCcw size={14} /> ��回列表
                     </button>
                   </div>
                 </div>

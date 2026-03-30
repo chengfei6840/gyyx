@@ -6,8 +6,8 @@ import {defineConfig, loadEnv} from 'vite';
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
   return {
-    // 部署到 Gitee Pages 子路径时必填，与仓库名一致（如仓库名 gyyx 则填 '/gyyx/'）
-    base: '/gyyx/',
+    // 在 Vercel 上使用 '/'，部署到 Gitee Pages 时改为 '/gyyx/'
+    base: process.env.VERCEL ? '/' : '/gyyx/',
     plugins: [react(), tailwindcss()],
     define: {
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
