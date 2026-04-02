@@ -7,6 +7,8 @@ import {
   ShieldCheck, 
   Activity,
   Zap,
+  Sun,
+  ArrowUpFromLine,
   ChevronRight,
   Bell,
   Globe,
@@ -60,12 +62,12 @@ type MenuId = 'whole-station' | 'single-station' | 'alarm-config' | 'alarm-data'
 // --- Mock Data ---
 
 const stations = [
-  { id: 1, name: '宁波尚航科技发展有限公司', type: '自发自用', capacity: 500, power: 124.5, energy: 114.2, maxTemp: 52.4, currentUnbalance: 2.1, voltageUnbalance: 1.2, status: 'normal' },
-  { id: 2, name: '杭州中兴工业园电站', type: '全额上网', capacity: 1200, power: 845.2, energy: 654.8, maxTemp: 78.5, currentUnbalance: 5.8, voltageUnbalance: 4.5, status: 'alarm' },
-  { id: 3, name: '嘉兴海宁皮革城1号站', type: '自发自用', capacity: 800, power: 0, energy: 0, maxTemp: 25.1, currentUnbalance: 0, voltageUnbalance: 0, status: 'offline' },
-  { id: 4, name: '绍兴柯桥纺织城电站', type: '自发自用', capacity: 2000, power: 1542.1, energy: 1245.3, maxTemp: 62.8, currentUnbalance: 3.2, voltageUnbalance: 2.1, status: 'normal' },
-  { id: 5, name: '湖州长兴新能源产业园', type: '全额上网', capacity: 1500, power: 1120.4, energy: 985.6, maxTemp: 48.2, currentUnbalance: 2.5, voltageUnbalance: 1.8, status: 'normal' },
-  { id: 6, name: '宁波北仑港务局电站', type: '自发自用', capacity: 3000, power: 2100.5, energy: 1850.2, maxTemp: 82.1, currentUnbalance: 6.5, voltageUnbalance: 5.2, status: 'alarm' },
+  { id: 1, name: '宁波尚航科技发展有限公司', type: '自发自用', capacity: 500, power: 124.5, energy: 114.2, monthlyGeneration: 12856.4, monthlyGridExport: 9240.8, maxTemp: 52.4, currentUnbalance: 2.1, voltageUnbalance: 1.2, status: 'normal' },
+  { id: 2, name: '杭州中兴工业园电站', type: '全额上网', capacity: 1200, power: 845.2, energy: 654.8, monthlyGeneration: 45210.5, monthlyGridExport: 39820.6, maxTemp: 78.5, currentUnbalance: 5.8, voltageUnbalance: 4.5, status: 'alarm' },
+  { id: 3, name: '嘉兴海宁皮革城1号站', type: '自发自用', capacity: 800, power: 0, energy: 0, monthlyGeneration: 0, monthlyGridExport: 0, maxTemp: 25.1, currentUnbalance: 0, voltageUnbalance: 0, status: 'offline' },
+  { id: 4, name: '绍兴柯桥纺织城电站', type: '自发自用', capacity: 2000, power: 1542.1, energy: 1245.3, monthlyGeneration: 98540.2, monthlyGridExport: 72015.4, maxTemp: 62.8, currentUnbalance: 3.2, voltageUnbalance: 2.1, status: 'normal' },
+  { id: 5, name: '湖州长兴新能源产业园', type: '全额上网', capacity: 1500, power: 1120.4, energy: 985.6, monthlyGeneration: 68520.7, monthlyGridExport: 61005.3, maxTemp: 48.2, currentUnbalance: 2.5, voltageUnbalance: 1.8, status: 'normal' },
+  { id: 6, name: '宁波北仑港务局电站', type: '自发自用', capacity: 3000, power: 2100.5, energy: 1850.2, monthlyGeneration: 125080.9, monthlyGridExport: 108920.1, maxTemp: 82.1, currentUnbalance: 6.5, voltageUnbalance: 5.2, status: 'alarm' },
 ];
 
 const tempDistribution = [
@@ -1263,7 +1265,7 @@ export default function App() {
 
               <div className="grid grid-cols-12 gap-4">
               {/* Overview Card */}
-              <Card title="配电房概况" className="col-span-12 lg:col-span-4">
+              <Card title="配电房概览" className="col-span-12 lg:col-span-4">
                 <div className="space-y-4">
                   <div className="flex flex-col gap-1.5 mb-4">
                     <span className="text-xs text-gray-400">电站名称：</span>
@@ -1279,9 +1281,15 @@ export default function App() {
                       ))}
                     </select>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <StatItem label="当前状态" value={selectedStation.status === 'normal' ? '正常' : selectedStation.status === 'alarm' ? '异常' : '离线'} unit="" icon={Activity} color={selectedStation.status === 'normal' ? 'bg-green-500' : selectedStation.status === 'alarm' ? 'bg-amber-500' : 'bg-gray-400'} />
-                    <StatItem label="当前功率" value={String(selectedStation.power)} unit="kW" icon={Zap} color="bg-cyan-500" />
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <StatItem label="当前状态" value={selectedStation.status === 'normal' ? '正常' : selectedStation.status === 'alarm' ? '异常' : '离线'} unit="" icon={Activity} color={selectedStation.status === 'normal' ? 'bg-green-500' : selectedStation.status === 'alarm' ? 'bg-amber-500' : 'bg-gray-400'} />
+                      <StatItem label="当前功率" value={String(selectedStation.power)} unit="kW" icon={Zap} color="bg-cyan-500" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <StatItem label="本月发电量" value={selectedStation.monthlyGeneration.toLocaleString('zh-CN', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} unit="kWh" icon={Sun} color="bg-amber-500" />
+                      <StatItem label="本月上网电量" value={selectedStation.monthlyGridExport.toLocaleString('zh-CN', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} unit="kWh" icon={ArrowUpFromLine} color="bg-indigo-500" />
+                    </div>
                   </div>
                 </div>
               </Card>
