@@ -429,6 +429,7 @@ export default function App() {
   const [selectedAlarm, setSelectedAlarm] = React.useState<any>(null);
   const [selectedStationId, setSelectedStationId] = React.useState<number>(stations[0].id);
   const selectedStation = stations.find((s) => s.id === selectedStationId) ?? stations[0];
+  const [curveQueryStationId, setCurveQueryStationId] = React.useState<number>(stations[0].id);
   const [deviceTab, setDeviceTab] = React.useState<'inverter' | 'meter' | 'camera' | 'temp'>('temp');
   const [stationDevices, setStationDevices] = React.useState({
     inverter: [] as { id: number; name: string; sn: string }[],
@@ -1555,6 +1556,20 @@ export default function App() {
               {/* Filter Area */}
               <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-wrap items-center gap-4">
                 <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500">电站选择:</span>
+                  <select
+                    value={curveQueryStationId}
+                    onChange={(e) => setCurveQueryStationId(Number(e.target.value))}
+                    className="text-xs border border-gray-200 rounded px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20 max-w-[220px]"
+                  >
+                    {stations.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex items-center gap-2">
                   <span className="text-xs text-gray-500">选择日期:</span>
                   <input type="date" defaultValue="2026-03-08" className="text-xs border border-gray-200 rounded px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
                 </div>
@@ -1646,6 +1661,20 @@ export default function App() {
             <div className="space-y-4">
               {/* Filter Area */}
               <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500">电站选择:</span>
+                  <select
+                    value={curveQueryStationId}
+                    onChange={(e) => setCurveQueryStationId(Number(e.target.value))}
+                    className="text-xs border border-gray-200 rounded px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20 max-w-[220px]"
+                  >
+                    {stations.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-gray-500">查询日期:</span>
                   <input type="date" defaultValue="2026-03-08" className="text-xs border border-gray-200 rounded px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
