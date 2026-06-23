@@ -171,7 +171,8 @@ type ElectricityPrice = {
   billingMethod: BillingMethod;
   nationalSubsidy: number;
   provincialSubsidy: number;
-  fixedPrice: number | null;
+  fixedForwardPrice: number | null;
+  fixedReversePrice: number | null;
   fixedDiscount: number;
   gridForwardSharp: number;
   gridForwardPeak: number;
@@ -205,9 +206,9 @@ const PRICE_PERIODS = [
 ] as const;
 
 const electricityPriceListMock: ElectricityPrice[] = [
-  { id: 1, stationId: 1, yearMonth: '2026-03', billingMethod: 'fixed', nationalSubsidy: 0, provincialSubsidy: 0, fixedPrice: 0.5, fixedDiscount: 100, gridForwardSharp: 0.5, gridForwardPeak: 0.5, gridForwardFlat: 0.5, gridForwardValley: 0.5, gridForwardDeepValley: 0.5, forwardDiscountSharp: null, forwardDiscountPeak: null, forwardDiscountFlat: null, forwardDiscountValley: null, forwardDiscountDeepValley: null, reverseSharp: 0, reversePeak: 0, reverseFlat: 0, reverseValley: 0, reverseDeepValley: 0, reverseDiscountSharp: null, reverseDiscountPeak: null, reverseDiscountFlat: null, reverseDiscountValley: null, reverseDiscountDeepValley: null, modifier: 'thingcom' },
-  { id: 2, stationId: 1, yearMonth: '2026-02', billingMethod: 'fixed', nationalSubsidy: 0, provincialSubsidy: 0, fixedPrice: 0.5, fixedDiscount: 100, gridForwardSharp: 0.5, gridForwardPeak: 0.5, gridForwardFlat: 0.5, gridForwardValley: 0.5, gridForwardDeepValley: 0.5, forwardDiscountSharp: null, forwardDiscountPeak: null, forwardDiscountFlat: null, forwardDiscountValley: null, forwardDiscountDeepValley: null, reverseSharp: 0, reversePeak: 0, reverseFlat: 0, reverseValley: 0, reverseDeepValley: 0, reverseDiscountSharp: null, reverseDiscountPeak: null, reverseDiscountFlat: null, reverseDiscountValley: null, reverseDiscountDeepValley: null, modifier: 'thingcom' },
-  { id: 3, stationId: 1, yearMonth: '2026-01', billingMethod: 'fixed', nationalSubsidy: 0, provincialSubsidy: 0, fixedPrice: 0.5, fixedDiscount: 100, gridForwardSharp: 0.5, gridForwardPeak: 0.5, gridForwardFlat: 0.5, gridForwardValley: 0.5, gridForwardDeepValley: 0.5, forwardDiscountSharp: null, forwardDiscountPeak: null, forwardDiscountFlat: null, forwardDiscountValley: null, forwardDiscountDeepValley: null, reverseSharp: 0, reversePeak: 0, reverseFlat: 0, reverseValley: 0, reverseDeepValley: 0, reverseDiscountSharp: null, reverseDiscountPeak: null, reverseDiscountFlat: null, reverseDiscountValley: null, reverseDiscountDeepValley: null, modifier: 'thingcom' },
+  { id: 1, stationId: 1, yearMonth: '2026-03', billingMethod: 'fixed', nationalSubsidy: 0, provincialSubsidy: 0, fixedForwardPrice: 0.5, fixedReversePrice: 0.5, fixedDiscount: 100, gridForwardSharp: 0.5, gridForwardPeak: 0.5, gridForwardFlat: 0.5, gridForwardValley: 0.5, gridForwardDeepValley: 0.5, forwardDiscountSharp: null, forwardDiscountPeak: null, forwardDiscountFlat: null, forwardDiscountValley: null, forwardDiscountDeepValley: null, reverseSharp: 0, reversePeak: 0, reverseFlat: 0, reverseValley: 0, reverseDeepValley: 0, reverseDiscountSharp: null, reverseDiscountPeak: null, reverseDiscountFlat: null, reverseDiscountValley: null, reverseDiscountDeepValley: null, modifier: 'thingcom' },
+  { id: 2, stationId: 1, yearMonth: '2026-02', billingMethod: 'fixed', nationalSubsidy: 0, provincialSubsidy: 0, fixedForwardPrice: 0.5, fixedReversePrice: 0.5, fixedDiscount: 100, gridForwardSharp: 0.5, gridForwardPeak: 0.5, gridForwardFlat: 0.5, gridForwardValley: 0.5, gridForwardDeepValley: 0.5, forwardDiscountSharp: null, forwardDiscountPeak: null, forwardDiscountFlat: null, forwardDiscountValley: null, forwardDiscountDeepValley: null, reverseSharp: 0, reversePeak: 0, reverseFlat: 0, reverseValley: 0, reverseDeepValley: 0, reverseDiscountSharp: null, reverseDiscountPeak: null, reverseDiscountFlat: null, reverseDiscountValley: null, reverseDiscountDeepValley: null, modifier: 'thingcom' },
+  { id: 3, stationId: 1, yearMonth: '2026-01', billingMethod: 'fixed', nationalSubsidy: 0, provincialSubsidy: 0, fixedForwardPrice: 0.5, fixedReversePrice: 0.5, fixedDiscount: 100, gridForwardSharp: 0.5, gridForwardPeak: 0.5, gridForwardFlat: 0.5, gridForwardValley: 0.5, gridForwardDeepValley: 0.5, forwardDiscountSharp: null, forwardDiscountPeak: null, forwardDiscountFlat: null, forwardDiscountValley: null, forwardDiscountDeepValley: null, reverseSharp: 0, reversePeak: 0, reverseFlat: 0, reverseValley: 0, reverseDeepValley: 0, reverseDiscountSharp: null, reverseDiscountPeak: null, reverseDiscountFlat: null, reverseDiscountValley: null, reverseDiscountDeepValley: null, modifier: 'thingcom' },
 ];
 
 const emptyElectricityPriceForm = {
@@ -215,7 +216,8 @@ const emptyElectricityPriceForm = {
   billingMethod: '' as '' | BillingMethod,
   nationalSubsidy: '',
   provincialSubsidy: '',
-  fixedPrice: '',
+  fixedForwardPrice: '',
+  fixedReversePrice: '',
   fixedDiscount: '100',
   gridForwardSharp: '',
   gridForwardPeak: '',
@@ -244,7 +246,8 @@ const electricityPriceToForm = (price: ElectricityPrice) => ({
   billingMethod: price.billingMethod,
   nationalSubsidy: String(price.nationalSubsidy),
   provincialSubsidy: String(price.provincialSubsidy),
-  fixedPrice: price.fixedPrice != null ? String(price.fixedPrice) : '',
+  fixedForwardPrice: price.fixedForwardPrice != null ? String(price.fixedForwardPrice) : '',
+  fixedReversePrice: price.fixedReversePrice != null ? String(price.fixedReversePrice) : '',
   fixedDiscount: String(price.fixedDiscount),
   gridForwardSharp: String(price.gridForwardSharp),
   gridForwardPeak: String(price.gridForwardPeak),
@@ -593,7 +596,8 @@ export default function App() {
       billingMethod: priceFormData.billingMethod,
       nationalSubsidy: parseNum(priceFormData.nationalSubsidy),
       provincialSubsidy: parseNum(priceFormData.provincialSubsidy),
-      fixedPrice: isFixed ? parseNullable(priceFormData.fixedPrice) : null,
+      fixedForwardPrice: isFixed ? parseNullable(priceFormData.fixedForwardPrice) : null,
+      fixedReversePrice: isFixed ? parseNullable(priceFormData.fixedReversePrice) : null,
       fixedDiscount: isFixed ? parseNum(priceFormData.fixedDiscount) || 100 : 100,
       gridForwardSharp: parseNum(priceFormData.gridForwardSharp),
       gridForwardPeak: parseNum(priceFormData.gridForwardPeak),
@@ -637,6 +641,41 @@ export default function App() {
       .filter((p) => p.stationId === priceMgmtStation.id && p.yearMonth.startsWith(priceFilterYear))
       .sort((a, b) => b.yearMonth.localeCompare(a.yearMonth));
   }, [electricityPrices, priceMgmtStation, priceFilterYear]);
+  const syncGridPrice = () => {
+    if (!priceMgmtStation || !priceFormData.yearMonth) return;
+    const existing = electricityPrices.find(
+      (p) => p.stationId === priceMgmtStation.id && p.yearMonth === priceFormData.yearMonth
+    );
+    if (!existing) {
+      alert('当前月份没有设置过国网电价');
+      return;
+    }
+    setPriceFormData((prev) => ({
+      ...prev,
+      gridForwardSharp: String(existing.gridForwardSharp),
+      gridForwardPeak: String(existing.gridForwardPeak),
+      gridForwardFlat: String(existing.gridForwardFlat),
+      gridForwardValley: String(existing.gridForwardValley),
+      gridForwardDeepValley: String(existing.gridForwardDeepValley),
+      reverseSharp: String(existing.reverseSharp),
+      reversePeak: String(existing.reversePeak),
+      reverseFlat: String(existing.reverseFlat),
+      reverseValley: String(existing.reverseValley),
+      reverseDeepValley: String(existing.reverseDeepValley),
+      ...(prev.billingMethod === 'timeOfUse' ? {
+        forwardDiscountSharp: existing.forwardDiscountSharp != null ? String(existing.forwardDiscountSharp) : '',
+        forwardDiscountPeak: existing.forwardDiscountPeak != null ? String(existing.forwardDiscountPeak) : '',
+        forwardDiscountFlat: existing.forwardDiscountFlat != null ? String(existing.forwardDiscountFlat) : '',
+        forwardDiscountValley: existing.forwardDiscountValley != null ? String(existing.forwardDiscountValley) : '',
+        forwardDiscountDeepValley: existing.forwardDiscountDeepValley != null ? String(existing.forwardDiscountDeepValley) : '',
+        reverseDiscountSharp: existing.reverseDiscountSharp != null ? String(existing.reverseDiscountSharp) : '',
+        reverseDiscountPeak: existing.reverseDiscountPeak != null ? String(existing.reverseDiscountPeak) : '',
+        reverseDiscountFlat: existing.reverseDiscountFlat != null ? String(existing.reverseDiscountFlat) : '',
+        reverseDiscountValley: existing.reverseDiscountValley != null ? String(existing.reverseDiscountValley) : '',
+        reverseDiscountDeepValley: existing.reverseDiscountDeepValley != null ? String(existing.reverseDiscountDeepValley) : '',
+      } : {}),
+    }));
+  };
   const formatPrice = (value: number) => (value === 0 ? '0元' : `${value}元`);
   const toggleAccessDevice = (key: string) => {
     setDeviceFormData((prev: any) => ({
@@ -4754,9 +4793,11 @@ export default function App() {
                   <thead>
                     <tr className="bg-gray-50 text-gray-500 border-b border-gray-100">
                       <th rowSpan={2} className="px-3 py-2 text-left font-medium border-r border-gray-100 whitespace-nowrap">年月</th>
+                      <th rowSpan={2} className="px-3 py-2 text-left font-medium border-r border-gray-100 whitespace-nowrap">计费方式</th>
                       <th rowSpan={2} className="px-3 py-2 text-left font-medium border-r border-gray-100 whitespace-nowrap">国补电价</th>
                       <th rowSpan={2} className="px-3 py-2 text-left font-medium border-r border-gray-100 whitespace-nowrap">省补电价</th>
-                      <th rowSpan={2} className="px-3 py-2 text-left font-medium border-r border-gray-100 whitespace-nowrap">电价折扣</th>
+                      <th rowSpan={2} className="px-3 py-2 text-left font-medium border-r border-gray-100 whitespace-nowrap">正向固定电价</th>
+                      <th rowSpan={2} className="px-3 py-2 text-left font-medium border-r border-gray-100 whitespace-nowrap">反向固定电价</th>
                       <th colSpan={5} className="px-3 py-2 text-center font-medium border-r border-gray-100 border-b border-gray-100">正向电价</th>
                       <th colSpan={5} className="px-3 py-2 text-center font-medium border-r border-gray-100 border-b border-gray-100">反向电价</th>
                       <th rowSpan={2} className="px-3 py-2 text-left font-medium border-r border-gray-100 whitespace-nowrap">修改人</th>
@@ -4781,11 +4822,11 @@ export default function App() {
                       filteredElectricityPrices.map((row) => (
                         <tr key={row.id} className="hover:bg-gray-50/50 transition-colors">
                           <td className="px-3 py-3 text-gray-700 font-medium whitespace-nowrap">{row.yearMonth}</td>
+                          <td className="px-3 py-3 text-gray-600 whitespace-nowrap">{row.billingMethod === 'fixed' ? '固定电价' : '分时电价'}</td>
                           <td className="px-3 py-3 text-gray-600 whitespace-nowrap">{row.nationalSubsidy.toFixed(2)}</td>
                           <td className="px-3 py-3 text-gray-600 whitespace-nowrap">{row.provincialSubsidy.toFixed(2)}</td>
-                          <td className="px-3 py-3 text-gray-400 whitespace-nowrap">
-                            {row.billingMethod === 'fixed' ? `${row.fixedDiscount}%` : ''}
-                          </td>
+                          <td className="px-3 py-3 text-gray-600 whitespace-nowrap">{row.billingMethod === 'fixed' && row.fixedForwardPrice != null ? row.fixedForwardPrice.toFixed(2) : ''}</td>
+                          <td className="px-3 py-3 text-gray-600 whitespace-nowrap">{row.billingMethod === 'fixed' && row.fixedReversePrice != null ? row.fixedReversePrice.toFixed(2) : ''}</td>
                           <td className="px-3 py-3 text-gray-600 whitespace-nowrap">{formatPrice(row.gridForwardSharp)}</td>
                           <td className="px-3 py-3 text-gray-600 whitespace-nowrap">{formatPrice(row.gridForwardPeak)}</td>
                           <td className="px-3 py-3 text-gray-600 whitespace-nowrap">{formatPrice(row.gridForwardFlat)}</td>
@@ -4817,7 +4858,7 @@ export default function App() {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={16} className="px-4 py-12 text-center text-gray-400">
+                        <td colSpan={17} className="px-4 py-12 text-center text-gray-400">
                           暂无数据
                         </td>
                       </tr>
@@ -4959,17 +5000,32 @@ export default function App() {
                         {/* 固定电价方式 - 固定分组 */}
                         <fieldset className="border border-gray-200 rounded-lg p-4">
                           <legend className="px-2 text-xs font-semibold text-gray-500">固定电价</legend>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4">
                             <div className="space-y-1">
                               <label className="text-xs text-gray-600">
-                                <span className="text-red-500">*</span> 固定电价
+                                <span className="text-red-500">*</span> 正向固定电价
                               </label>
                               <div className="relative">
                                 <input
                                   type="text"
-                                  value={priceFormData.fixedPrice}
-                                  onChange={(e) => setPriceFormData((p) => ({ ...p, fixedPrice: e.target.value }))}
-                                  placeholder="请输入固定电价"
+                                  value={priceFormData.fixedForwardPrice}
+                                  onChange={(e) => setPriceFormData((p) => ({ ...p, fixedForwardPrice: e.target.value }))}
+                                  placeholder="请输入正向固定电价"
+                                  className="w-full text-xs border border-gray-200 rounded px-3 py-2 pr-16 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                />
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">元/kWh</span>
+                              </div>
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-xs text-gray-600">
+                                <span className="text-red-500">*</span> 反向固定电价
+                              </label>
+                              <div className="relative">
+                                <input
+                                  type="text"
+                                  value={priceFormData.fixedReversePrice}
+                                  onChange={(e) => setPriceFormData((p) => ({ ...p, fixedReversePrice: e.target.value }))}
+                                  placeholder="请输入反向固定电价"
                                   className="w-full text-xs border border-gray-200 rounded px-3 py-2 pr-16 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                                 />
                                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">元/kWh</span>
@@ -4993,7 +5049,16 @@ export default function App() {
                         </fieldset>
                         {/* 固定电价方式 - 国网电价分组 */}
                         <fieldset className="border border-gray-200 rounded-lg p-4">
-                          <legend className="px-2 text-xs font-semibold text-gray-500">国网电价</legend>
+                          <legend className="px-2 text-xs font-semibold text-gray-500 flex items-center gap-2">
+                            国网电价
+                            <button
+                              type="button"
+                              onClick={syncGridPrice}
+                              className="text-[10px] text-blue-600 font-medium border border-blue-200 rounded px-2 py-0.5 hover:bg-blue-50 transition-colors"
+                            >
+                              同步电价
+                            </button>
+                          </legend>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
                             {PRICE_PERIODS.map(({ suffix, label }) => (
                               <React.Fragment key={suffix}>
@@ -5034,7 +5099,16 @@ export default function App() {
 
                     {priceFormData.billingMethod === 'timeOfUse' && (
                       <fieldset className="border border-gray-200 rounded-lg p-4">
-                        <legend className="px-2 text-xs font-semibold text-gray-500">国网电价</legend>
+                        <legend className="px-2 text-xs font-semibold text-gray-500 flex items-center gap-2">
+                          国网电价
+                          <button
+                            type="button"
+                            onClick={syncGridPrice}
+                            className="text-[10px] text-blue-600 font-medium border border-blue-200 rounded px-2 py-0.5 hover:bg-blue-50 transition-colors"
+                          >
+                            同步电价
+                          </button>
+                        </legend>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
                           {PRICE_PERIODS.map(({ suffix, label }) => (
                             <React.Fragment key={`forward-${suffix}`}>
