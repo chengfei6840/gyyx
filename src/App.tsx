@@ -162,17 +162,123 @@ const unbalanceDetailList = Array.from({ length: 24 }, (_, i) => {
   };
 });
 
+type BillingMethod = 'fixed' | 'timeOfUse';
+
+type ElectricityPrice = {
+  id: number;
+  stationId: number;
+  yearMonth: string;
+  billingMethod: BillingMethod;
+  nationalSubsidy: number;
+  provincialSubsidy: number;
+  fixedPrice: number | null;
+  fixedDiscount: number;
+  gridForwardSharp: number;
+  gridForwardPeak: number;
+  gridForwardFlat: number;
+  gridForwardValley: number;
+  gridForwardDeepValley: number;
+  forwardDiscountSharp: number | null;
+  forwardDiscountPeak: number | null;
+  forwardDiscountFlat: number | null;
+  forwardDiscountValley: number | null;
+  forwardDiscountDeepValley: number | null;
+  reverseSharp: number;
+  reversePeak: number;
+  reverseFlat: number;
+  reverseValley: number;
+  reverseDeepValley: number;
+  reverseDiscountSharp: number | null;
+  reverseDiscountPeak: number | null;
+  reverseDiscountFlat: number | null;
+  reverseDiscountValley: number | null;
+  reverseDiscountDeepValley: number | null;
+  modifier: string;
+};
+
+const PRICE_PERIODS = [
+  { suffix: 'Sharp', label: '尖' },
+  { suffix: 'Peak', label: '峰' },
+  { suffix: 'Flat', label: '平' },
+  { suffix: 'Valley', label: '谷' },
+  { suffix: 'DeepValley', label: '深谷' },
+] as const;
+
+const electricityPriceListMock: ElectricityPrice[] = [
+  { id: 1, stationId: 1, yearMonth: '2026-03', billingMethod: 'fixed', nationalSubsidy: 0, provincialSubsidy: 0, fixedPrice: 0.5, fixedDiscount: 100, gridForwardSharp: 0.5, gridForwardPeak: 0.5, gridForwardFlat: 0.5, gridForwardValley: 0.5, gridForwardDeepValley: 0.5, forwardDiscountSharp: null, forwardDiscountPeak: null, forwardDiscountFlat: null, forwardDiscountValley: null, forwardDiscountDeepValley: null, reverseSharp: 0, reversePeak: 0, reverseFlat: 0, reverseValley: 0, reverseDeepValley: 0, reverseDiscountSharp: null, reverseDiscountPeak: null, reverseDiscountFlat: null, reverseDiscountValley: null, reverseDiscountDeepValley: null, modifier: 'thingcom' },
+  { id: 2, stationId: 1, yearMonth: '2026-02', billingMethod: 'fixed', nationalSubsidy: 0, provincialSubsidy: 0, fixedPrice: 0.5, fixedDiscount: 100, gridForwardSharp: 0.5, gridForwardPeak: 0.5, gridForwardFlat: 0.5, gridForwardValley: 0.5, gridForwardDeepValley: 0.5, forwardDiscountSharp: null, forwardDiscountPeak: null, forwardDiscountFlat: null, forwardDiscountValley: null, forwardDiscountDeepValley: null, reverseSharp: 0, reversePeak: 0, reverseFlat: 0, reverseValley: 0, reverseDeepValley: 0, reverseDiscountSharp: null, reverseDiscountPeak: null, reverseDiscountFlat: null, reverseDiscountValley: null, reverseDiscountDeepValley: null, modifier: 'thingcom' },
+  { id: 3, stationId: 1, yearMonth: '2026-01', billingMethod: 'fixed', nationalSubsidy: 0, provincialSubsidy: 0, fixedPrice: 0.5, fixedDiscount: 100, gridForwardSharp: 0.5, gridForwardPeak: 0.5, gridForwardFlat: 0.5, gridForwardValley: 0.5, gridForwardDeepValley: 0.5, forwardDiscountSharp: null, forwardDiscountPeak: null, forwardDiscountFlat: null, forwardDiscountValley: null, forwardDiscountDeepValley: null, reverseSharp: 0, reversePeak: 0, reverseFlat: 0, reverseValley: 0, reverseDeepValley: 0, reverseDiscountSharp: null, reverseDiscountPeak: null, reverseDiscountFlat: null, reverseDiscountValley: null, reverseDiscountDeepValley: null, modifier: 'thingcom' },
+];
+
+const emptyElectricityPriceForm = {
+  yearMonth: '',
+  billingMethod: '' as '' | BillingMethod,
+  nationalSubsidy: '',
+  provincialSubsidy: '',
+  fixedPrice: '',
+  fixedDiscount: '100',
+  gridForwardSharp: '',
+  gridForwardPeak: '',
+  gridForwardFlat: '',
+  gridForwardValley: '',
+  gridForwardDeepValley: '',
+  forwardDiscountSharp: '',
+  forwardDiscountPeak: '',
+  forwardDiscountFlat: '',
+  forwardDiscountValley: '',
+  forwardDiscountDeepValley: '',
+  reverseSharp: '',
+  reversePeak: '',
+  reverseFlat: '',
+  reverseValley: '',
+  reverseDeepValley: '',
+  reverseDiscountSharp: '',
+  reverseDiscountPeak: '',
+  reverseDiscountFlat: '',
+  reverseDiscountValley: '',
+  reverseDiscountDeepValley: '',
+};
+
+const electricityPriceToForm = (price: ElectricityPrice) => ({
+  yearMonth: price.yearMonth,
+  billingMethod: price.billingMethod,
+  nationalSubsidy: String(price.nationalSubsidy),
+  provincialSubsidy: String(price.provincialSubsidy),
+  fixedPrice: price.fixedPrice != null ? String(price.fixedPrice) : '',
+  fixedDiscount: String(price.fixedDiscount),
+  gridForwardSharp: String(price.gridForwardSharp),
+  gridForwardPeak: String(price.gridForwardPeak),
+  gridForwardFlat: String(price.gridForwardFlat),
+  gridForwardValley: String(price.gridForwardValley),
+  gridForwardDeepValley: String(price.gridForwardDeepValley),
+  forwardDiscountSharp: price.forwardDiscountSharp != null ? String(price.forwardDiscountSharp) : '',
+  forwardDiscountPeak: price.forwardDiscountPeak != null ? String(price.forwardDiscountPeak) : '',
+  forwardDiscountFlat: price.forwardDiscountFlat != null ? String(price.forwardDiscountFlat) : '',
+  forwardDiscountValley: price.forwardDiscountValley != null ? String(price.forwardDiscountValley) : '',
+  forwardDiscountDeepValley: price.forwardDiscountDeepValley != null ? String(price.forwardDiscountDeepValley) : '',
+  reverseSharp: String(price.reverseSharp),
+  reversePeak: String(price.reversePeak),
+  reverseFlat: String(price.reverseFlat),
+  reverseValley: String(price.reverseValley),
+  reverseDeepValley: String(price.reverseDeepValley),
+  reverseDiscountSharp: price.reverseDiscountSharp != null ? String(price.reverseDiscountSharp) : '',
+  reverseDiscountPeak: price.reverseDiscountPeak != null ? String(price.reverseDiscountPeak) : '',
+  reverseDiscountFlat: price.reverseDiscountFlat != null ? String(price.reverseDiscountFlat) : '',
+  reverseDiscountValley: price.reverseDiscountValley != null ? String(price.reverseDiscountValley) : '',
+  reverseDiscountDeepValley: price.reverseDiscountDeepValley != null ? String(price.reverseDiscountDeepValley) : '',
+});
+
 const stationMgmtList = [
-  { id: 1, name: '宁波市海曙区鄞江镇东兴村股...', type: '工商业屋顶', capacity: '635.48', gridType: '自发自用余额上网', payment: '业主自投', address: '浙江省宁波市海曙区鄞江镇东兴村' },
-  { id: 2, name: '宁波尚航科技发展有限公司', type: '工商业屋顶', capacity: '202.96', gridType: '自发自用余额上网', payment: '业主自投', address: '浙江省宁波市奉化区莼湖街道' },
-  { id: 3, name: '宁波奉化正一齿轮厂', type: '工商业屋顶', capacity: '204.75', gridType: '自发自用余额上网', payment: '业主自投', address: '浙江省宁波市奉化区莼湖街道' },
-  { id: 4, name: '宁波奉化区奉拓机电制造有...', type: '工商业屋顶', capacity: '84.15', gridType: '自发自用余额上网', payment: '业主自投', address: '浙江省宁波市奉化区溪口镇' },
-  { id: 5, name: '宁波奉化曙光电子有限公司', type: '工商业屋顶', capacity: '133.65', gridType: '自发自用余额上网', payment: '业主自投', address: '浙江省宁波市奉化区瑞峰路' },
-  { id: 6, name: '宁波夏达工具有限公司2', type: '工商业屋顶', capacity: '251.10', gridType: '自发自用余额上网', payment: '业主自投', address: '浙江省宁波市奉化区溪口镇' },
-  { id: 7, name: '宁波奉化双富轴业有限公司', type: '工商业屋顶', capacity: '87.95', gridType: '自发自用余额上网', payment: '业主自投', address: '浙江省宁波市奉化区西宁路' },
-  { id: 8, name: '宁波斯贝尔汽车部件有限公司', type: '工商业屋顶', capacity: '220.00', gridType: '自发自用余额上网', payment: '业主自投', address: '浙江省宁波市海曙区鄞江镇' },
-  { id: 9, name: '宁波四联宏达玻璃有限公司', type: '工商业屋顶', capacity: '907.74', gridType: '自发自用余额上网', payment: '业主自投', address: '浙江省宁波市海曙区沿山村' },
-  { id: 10, name: '宁波海曙天成装饰厂', type: '工商业屋顶', capacity: '339.76', gridType: '自发自用余额上网', payment: '业主自投', address: '浙江省宁波市海曙区靠近' },
+  { id: 1, name: '宁波市海曙区鄞江镇东兴村股...', fullName: '宁波市海曙区鄞江镇东兴村股份经济合作社', type: '工商业屋顶', capacity: '635.48', gridType: '自发自用余额上网', payment: '业主自投', address: '浙江省宁波市海曙区鄞江镇东兴村' },
+  { id: 2, name: '宁波尚航科技发展有限公司', fullName: '宁波尚航科技发展有限公司', type: '工商业屋顶', capacity: '202.96', gridType: '自发自用余额上网', payment: '业主自投', address: '浙江省宁波市奉化区莼湖街道' },
+  { id: 3, name: '宁波奉化正一齿轮厂', fullName: '宁波奉化正一齿轮厂', type: '工商业屋顶', capacity: '204.75', gridType: '自发自用余额上网', payment: '业主自投', address: '浙江省宁波市奉化区莼湖街道' },
+  { id: 4, name: '宁波奉化区奉拓机电制造有...', fullName: '宁波奉化区奉拓机电制造有限公司', type: '工商业屋顶', capacity: '84.15', gridType: '自发自用余额上网', payment: '业主自投', address: '浙江省宁波市奉化区溪口镇' },
+  { id: 5, name: '宁波奉化曙光电子有限公司', fullName: '宁波奉化曙光电子有限公司', type: '工商业屋顶', capacity: '133.65', gridType: '自发自用余额上网', payment: '业主自投', address: '浙江省宁波市奉化区瑞峰路' },
+  { id: 6, name: '宁波夏达工具有限公司2', fullName: '宁波夏达工具有限公司2', type: '工商业屋顶', capacity: '251.10', gridType: '自发自用余额上网', payment: '业主自投', address: '浙江省宁波市奉化区溪口镇' },
+  { id: 7, name: '宁波奉化双富轴业有限公司', fullName: '宁波奉化双富轴业有限公司', type: '工商业屋顶', capacity: '87.95', gridType: '自发自用余额上网', payment: '业主自投', address: '浙江省宁波市奉化区西宁路' },
+  { id: 8, name: '宁波斯贝尔汽车部件有限公司', fullName: '宁波斯贝尔汽车部件有限公司', type: '工商业屋顶', capacity: '220.00', gridType: '自发自用余额上网', payment: '业主自投', address: '浙江省宁波市海曙区鄞江镇' },
+  { id: 9, name: '宁波四联宏达玻璃有限公司', fullName: '宁波四联宏达玻璃有限公司', type: '工商业屋顶', capacity: '907.74', gridType: '自发自用余额上网', payment: '业主自投', address: '浙江省宁波市海曙区沿山村' },
+  { id: 10, name: '宁波海曙天成装饰厂', fullName: '宁波海曙天成装饰厂', type: '工商业屋顶', capacity: '339.76', gridType: '自发自用余额上网', payment: '业主自投', address: '浙江省宁波市海曙区靠近' },
 ];
 
 const cleanPlanListMock = [
@@ -443,6 +549,95 @@ export default function App() {
   const [isDeviceModalOpen, setIsDeviceModalOpen] = React.useState(false);
   const [editingDevice, setEditingDevice] = React.useState<any>(null);
   const [deviceFormData, setDeviceFormData] = React.useState<any>({});
+  const [isPriceMgmtModalOpen, setIsPriceMgmtModalOpen] = React.useState(false);
+  const [isPriceFormModalOpen, setIsPriceFormModalOpen] = React.useState(false);
+  const [priceMgmtStation, setPriceMgmtStation] = React.useState<(typeof stationMgmtList)[0] | null>(null);
+  const [electricityPrices, setElectricityPrices] = React.useState(electricityPriceListMock);
+  const [priceFilterYear, setPriceFilterYear] = React.useState('2026');
+  const [editingPriceId, setEditingPriceId] = React.useState<number | null>(null);
+  const [priceFormData, setPriceFormData] = React.useState({ ...emptyElectricityPriceForm });
+  const openPriceMgmtModal = (station: (typeof stationMgmtList)[0]) => {
+    setPriceMgmtStation(station);
+    setPriceFilterYear('2026');
+    setIsPriceMgmtModalOpen(true);
+  };
+  const openPriceFormModal = (price?: ElectricityPrice) => {
+    if (price) {
+      setEditingPriceId(price.id);
+      setPriceFormData(electricityPriceToForm(price));
+    } else {
+      setEditingPriceId(null);
+      setPriceFormData({ ...emptyElectricityPriceForm, yearMonth: `${priceFilterYear}-06` });
+    }
+    setIsPriceFormModalOpen(true);
+  };
+  const importLastPrice = () => {
+    if (!priceMgmtStation) return;
+    const lastPrice = electricityPrices
+      .filter((p) => p.stationId === priceMgmtStation.id)
+      .sort((a, b) => b.yearMonth.localeCompare(a.yearMonth))[0];
+    if (!lastPrice) return;
+    setPriceFormData((prev) => ({
+      ...prev,
+      ...electricityPriceToForm(lastPrice),
+      yearMonth: prev.yearMonth,
+    }));
+  };
+  const savePriceForm = () => {
+    if (!priceMgmtStation || !priceFormData.billingMethod) return;
+    const parseNum = (v: string) => (v === '' ? 0 : Number(v));
+    const parseNullable = (v: string) => (v === '' ? null : Number(v));
+    const isFixed = priceFormData.billingMethod === 'fixed';
+    const payload: Omit<ElectricityPrice, 'id' | 'stationId'> = {
+      yearMonth: priceFormData.yearMonth,
+      billingMethod: priceFormData.billingMethod,
+      nationalSubsidy: parseNum(priceFormData.nationalSubsidy),
+      provincialSubsidy: parseNum(priceFormData.provincialSubsidy),
+      fixedPrice: isFixed ? parseNullable(priceFormData.fixedPrice) : null,
+      fixedDiscount: isFixed ? parseNum(priceFormData.fixedDiscount) || 100 : 100,
+      gridForwardSharp: parseNum(priceFormData.gridForwardSharp),
+      gridForwardPeak: parseNum(priceFormData.gridForwardPeak),
+      gridForwardFlat: parseNum(priceFormData.gridForwardFlat),
+      gridForwardValley: parseNum(priceFormData.gridForwardValley),
+      gridForwardDeepValley: parseNum(priceFormData.gridForwardDeepValley),
+      forwardDiscountSharp: isFixed ? null : parseNullable(priceFormData.forwardDiscountSharp),
+      forwardDiscountPeak: isFixed ? null : parseNullable(priceFormData.forwardDiscountPeak),
+      forwardDiscountFlat: isFixed ? null : parseNullable(priceFormData.forwardDiscountFlat),
+      forwardDiscountValley: isFixed ? null : parseNullable(priceFormData.forwardDiscountValley),
+      forwardDiscountDeepValley: isFixed ? null : parseNullable(priceFormData.forwardDiscountDeepValley),
+      reverseSharp: parseNum(priceFormData.reverseSharp),
+      reversePeak: parseNum(priceFormData.reversePeak),
+      reverseFlat: parseNum(priceFormData.reverseFlat),
+      reverseValley: parseNum(priceFormData.reverseValley),
+      reverseDeepValley: parseNum(priceFormData.reverseDeepValley),
+      reverseDiscountSharp: isFixed ? null : parseNullable(priceFormData.reverseDiscountSharp),
+      reverseDiscountPeak: isFixed ? null : parseNullable(priceFormData.reverseDiscountPeak),
+      reverseDiscountFlat: isFixed ? null : parseNullable(priceFormData.reverseDiscountFlat),
+      reverseDiscountValley: isFixed ? null : parseNullable(priceFormData.reverseDiscountValley),
+      reverseDiscountDeepValley: isFixed ? null : parseNullable(priceFormData.reverseDiscountDeepValley),
+      modifier: 'thingcom',
+    };
+    if (editingPriceId != null) {
+      setElectricityPrices((prev) =>
+        prev.map((p) => (p.id === editingPriceId ? { ...p, ...payload } : p))
+      );
+    } else {
+      setElectricityPrices((prev) => [
+        ...prev,
+        { id: Math.max(0, ...prev.map((p) => p.id)) + 1, stationId: priceMgmtStation.id, ...payload },
+      ]);
+    }
+    setIsPriceFormModalOpen(false);
+    setEditingPriceId(null);
+    setPriceFormData({ ...emptyElectricityPriceForm });
+  };
+  const filteredElectricityPrices = React.useMemo(() => {
+    if (!priceMgmtStation) return [];
+    return electricityPrices
+      .filter((p) => p.stationId === priceMgmtStation.id && p.yearMonth.startsWith(priceFilterYear))
+      .sort((a, b) => b.yearMonth.localeCompare(a.yearMonth));
+  }, [electricityPrices, priceMgmtStation, priceFilterYear]);
+  const formatPrice = (value: number) => (value === 0 ? '0元' : `${value}元`);
   const toggleAccessDevice = (key: string) => {
     setDeviceFormData((prev: any) => ({
       ...prev,
@@ -2073,7 +2268,12 @@ export default function App() {
                               >
                                 设备
                               </button>
-                              <button className="text-blue-600 hover:underline font-medium">电价管理</button>
+                              <button
+                                onClick={() => openPriceMgmtModal(station)}
+                                className="text-blue-600 hover:underline font-medium"
+                              >
+                                电价管理
+                              </button>
                               <button className="text-red-500 hover:underline font-medium">删除</button>
                             </div>
                           </td>
@@ -4484,6 +4684,446 @@ export default function App() {
                 <button 
                   onClick={handleSaveDevice}
                   className="flex-1 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  保存
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Electricity Price Management Modal */}
+        {isPriceMgmtModalOpen && priceMgmtStation && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsPriceMgmtModalOpen(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white rounded-xl shadow-2xl w-full max-w-6xl overflow-hidden relative z-10 max-h-[90vh] flex flex-col"
+            >
+              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
+                <h3 className="font-bold text-gray-800">电价管理</h3>
+                <div className="flex items-center gap-2">
+                  <button className="p-1 hover:bg-gray-100 rounded transition-colors" aria-label="最大化">
+                    <Maximize2 size={18} className="text-gray-400" />
+                  </button>
+                  <button
+                    onClick={() => setIsPriceMgmtModalOpen(false)}
+                    className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                  >
+                    <X size={20} className="text-gray-400" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="px-6 py-4 border-b border-gray-50 flex flex-wrap items-center gap-4 flex-shrink-0">
+                <div className="flex items-center gap-2 text-xs text-gray-600">
+                  <span className="text-gray-500 whitespace-nowrap">电站名称：</span>
+                  <span className="font-medium text-gray-800">{priceMgmtStation.fullName}</span>
+                </div>
+                <div className="flex items-center gap-2 ml-auto">
+                  <input
+                    type="number"
+                    min={2000}
+                    max={2100}
+                    value={priceFilterYear}
+                    onChange={(e) => setPriceFilterYear(e.target.value)}
+                    className="text-xs border border-gray-200 rounded px-3 py-2 w-24 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  />
+                  <button className="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded hover:bg-blue-700 transition-colors flex items-center gap-1">
+                    <Search size={14} /> 搜索
+                  </button>
+                  <button
+                    onClick={() => openPriceFormModal()}
+                    className="px-4 py-2 border border-gray-200 text-gray-700 text-xs font-bold rounded hover:bg-gray-50 transition-colors"
+                  >
+                    新增电价
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-auto min-h-0">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="bg-gray-50 text-gray-500 border-b border-gray-100">
+                      <th rowSpan={2} className="px-3 py-2 text-left font-medium border-r border-gray-100 whitespace-nowrap">年月</th>
+                      <th rowSpan={2} className="px-3 py-2 text-left font-medium border-r border-gray-100 whitespace-nowrap">国补电价</th>
+                      <th rowSpan={2} className="px-3 py-2 text-left font-medium border-r border-gray-100 whitespace-nowrap">省补电价</th>
+                      <th rowSpan={2} className="px-3 py-2 text-left font-medium border-r border-gray-100 whitespace-nowrap">电价折扣</th>
+                      <th colSpan={5} className="px-3 py-2 text-center font-medium border-r border-gray-100 border-b border-gray-100">正向电价</th>
+                      <th colSpan={5} className="px-3 py-2 text-center font-medium border-r border-gray-100 border-b border-gray-100">反向电价</th>
+                      <th rowSpan={2} className="px-3 py-2 text-left font-medium border-r border-gray-100 whitespace-nowrap">修改人</th>
+                      <th rowSpan={2} className="px-3 py-2 text-left font-medium whitespace-nowrap">操作</th>
+                    </tr>
+                    <tr className="bg-gray-50 text-gray-500 border-b border-gray-100">
+                      {['尖', '峰', '平', '谷', '深谷', '尖', '峰', '平', '谷', '深谷'].map((label, idx) => (
+                        <th
+                          key={`${label}-${idx}`}
+                          className={cn(
+                            'px-3 py-2 text-center font-medium whitespace-nowrap',
+                            idx === 4 ? 'border-r border-gray-100' : ''
+                          )}
+                        >
+                          {label}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {filteredElectricityPrices.length > 0 ? (
+                      filteredElectricityPrices.map((row) => (
+                        <tr key={row.id} className="hover:bg-gray-50/50 transition-colors">
+                          <td className="px-3 py-3 text-gray-700 font-medium whitespace-nowrap">{row.yearMonth}</td>
+                          <td className="px-3 py-3 text-gray-600 whitespace-nowrap">{row.nationalSubsidy.toFixed(2)}</td>
+                          <td className="px-3 py-3 text-gray-600 whitespace-nowrap">{row.provincialSubsidy.toFixed(2)}</td>
+                          <td className="px-3 py-3 text-gray-400 whitespace-nowrap">
+                            {row.billingMethod === 'fixed' ? `${row.fixedDiscount}%` : ''}
+                          </td>
+                          <td className="px-3 py-3 text-gray-600 whitespace-nowrap">{formatPrice(row.gridForwardSharp)}</td>
+                          <td className="px-3 py-3 text-gray-600 whitespace-nowrap">{formatPrice(row.gridForwardPeak)}</td>
+                          <td className="px-3 py-3 text-gray-600 whitespace-nowrap">{formatPrice(row.gridForwardFlat)}</td>
+                          <td className="px-3 py-3 text-gray-600 whitespace-nowrap">{formatPrice(row.gridForwardValley)}</td>
+                          <td className="px-3 py-3 text-gray-600 whitespace-nowrap border-r border-gray-50">{formatPrice(row.gridForwardDeepValley)}</td>
+                          <td className="px-3 py-3 text-gray-600 whitespace-nowrap">{formatPrice(row.reverseSharp)}</td>
+                          <td className="px-3 py-3 text-gray-600 whitespace-nowrap">{formatPrice(row.reversePeak)}</td>
+                          <td className="px-3 py-3 text-gray-600 whitespace-nowrap">{formatPrice(row.reverseFlat)}</td>
+                          <td className="px-3 py-3 text-gray-600 whitespace-nowrap">{formatPrice(row.reverseValley)}</td>
+                          <td className="px-3 py-3 text-gray-600 whitespace-nowrap border-r border-gray-50">{formatPrice(row.reverseDeepValley)}</td>
+                          <td className="px-3 py-3 text-gray-600 whitespace-nowrap">{row.modifier}</td>
+                          <td className="px-3 py-3 whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => openPriceFormModal(row)}
+                                className="px-3 py-1 border border-gray-200 rounded text-xs text-gray-600 hover:bg-gray-50"
+                              >
+                                编辑
+                              </button>
+                              <button
+                                onClick={() => setElectricityPrices((prev) => prev.filter((p) => p.id !== row.id))}
+                                className="px-3 py-1 border border-red-200 rounded text-xs text-red-500 hover:bg-red-50"
+                              >
+                                删除
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={16} className="px-4 py-12 text-center text-gray-400">
+                          暂无数据
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="px-6 py-3 border-t border-gray-50 flex items-center justify-between text-xs text-gray-500 flex-shrink-0">
+                <span>共 {filteredElectricityPrices.length} 条记录</span>
+                <div className="flex items-center gap-3">
+                  <select className="text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none">
+                    <option>20条/页</option>
+                    <option>50条/页</option>
+                    <option>100条/页</option>
+                  </select>
+                  <div className="flex items-center gap-1">
+                    <button type="button" className="w-7 h-7 flex items-center justify-center rounded border border-gray-200 hover:bg-gray-50 text-gray-400">«</button>
+                    <button type="button" className="w-7 h-7 flex items-center justify-center rounded border border-gray-200 hover:bg-gray-50 text-gray-400">‹</button>
+                    <button type="button" className="w-7 h-7 flex items-center justify-center rounded border border-blue-500 bg-blue-50 text-blue-600 font-medium">1</button>
+                    <button type="button" className="w-7 h-7 flex items-center justify-center rounded border border-gray-200 hover:bg-gray-50 text-gray-400">›</button>
+                    <button type="button" className="w-7 h-7 flex items-center justify-center rounded border border-gray-200 hover:bg-gray-50 text-gray-400">»</button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Add/Edit Electricity Price Modal */}
+        {isPriceFormModalOpen && priceMgmtStation && (
+          <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsPriceFormModalOpen(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white rounded-xl shadow-2xl w-full max-w-4xl overflow-hidden relative z-10 max-h-[90vh] flex flex-col"
+            >
+              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
+                <h3 className="font-bold text-gray-800">{editingPriceId != null ? '修改电价' : '新增电价'}</h3>
+                <button
+                  onClick={() => setIsPriceFormModalOpen(false)}
+                  className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <X size={20} className="text-gray-400" />
+                </button>
+              </div>
+
+              <div className="p-6 overflow-y-auto flex-1 min-h-0 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-4 items-end">
+                  <div className="space-y-1">
+                    <label className="text-xs text-gray-600">
+                      <span className="text-red-500">*</span> 月份
+                    </label>
+                    <input
+                      type="month"
+                      value={priceFormData.yearMonth}
+                      onChange={(e) => setPriceFormData((p) => ({ ...p, yearMonth: e.target.value }))}
+                      className="w-full text-xs border border-gray-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs text-gray-600">
+                      <span className="text-red-500">*</span> 计费方式
+                    </label>
+                    <select
+                      value={priceFormData.billingMethod}
+                      onChange={(e) =>
+                        setPriceFormData((p) => ({
+                          ...p,
+                          billingMethod: e.target.value as BillingMethod,
+                          fixedDiscount: '100',
+                        }))
+                      }
+                      className="w-full text-xs border border-gray-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white"
+                    >
+                      <option value="">请选择计费方式</option>
+                      <option value="fixed">固定电价</option>
+                      <option value="timeOfUse">分时电价</option>
+                    </select>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={importLastPrice}
+                    className="px-4 py-2 border border-gray-200 text-gray-600 text-xs font-medium rounded hover:bg-gray-50 transition-colors whitespace-nowrap"
+                  >
+                    导入上次电价
+                  </button>
+                </div>
+
+                {priceFormData.billingMethod && (
+                  <>
+                    {/* 补贴电价分组 - 固定电价和分时电价都有 */}
+                    <fieldset className="border border-gray-200 rounded-lg p-4">
+                      <legend className="px-2 text-xs font-semibold text-gray-500">补贴电价</legend>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                        <div className="space-y-1">
+                          <label className="text-xs text-gray-600">
+                            <span className="text-red-500">*</span> 国补电价
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="text"
+                              value={priceFormData.nationalSubsidy}
+                              onChange={(e) => setPriceFormData((p) => ({ ...p, nationalSubsidy: e.target.value }))}
+                              placeholder="请输入国补电价"
+                              className="w-full text-xs border border-gray-200 rounded px-3 py-2 pr-16 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                            />
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">元/kWh</span>
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs text-gray-600">
+                            <span className="text-red-500">*</span> 省补电价
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="text"
+                              value={priceFormData.provincialSubsidy}
+                              onChange={(e) => setPriceFormData((p) => ({ ...p, provincialSubsidy: e.target.value }))}
+                              placeholder="请输入省补电价"
+                              className="w-full text-xs border border-gray-200 rounded px-3 py-2 pr-16 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                            />
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">元/kWh</span>
+                          </div>
+                        </div>
+                      </div>
+                    </fieldset>
+
+                    {priceFormData.billingMethod === 'fixed' && (
+                      <>
+                        {/* 固定电价方式 - 固定分组 */}
+                        <fieldset className="border border-gray-200 rounded-lg p-4">
+                          <legend className="px-2 text-xs font-semibold text-gray-500">固定电价</legend>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                            <div className="space-y-1">
+                              <label className="text-xs text-gray-600">
+                                <span className="text-red-500">*</span> 固定电价
+                              </label>
+                              <div className="relative">
+                                <input
+                                  type="text"
+                                  value={priceFormData.fixedPrice}
+                                  onChange={(e) => setPriceFormData((p) => ({ ...p, fixedPrice: e.target.value }))}
+                                  placeholder="请输入固定电价"
+                                  className="w-full text-xs border border-gray-200 rounded px-3 py-2 pr-16 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                />
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">元/kWh</span>
+                              </div>
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-xs text-gray-600">
+                                <span className="text-red-500">*</span> 固定折扣
+                              </label>
+                              <div className="relative">
+                                <input
+                                  type="text"
+                                  value={priceFormData.fixedDiscount}
+                                  readOnly
+                                  className="w-full text-xs border border-gray-200 rounded px-3 py-2 pr-8 bg-gray-50 text-gray-500 cursor-not-allowed"
+                                />
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">%</span>
+                              </div>
+                            </div>
+                          </div>
+                        </fieldset>
+                        {/* 固定电价方式 - 国网电价分组 */}
+                        <fieldset className="border border-gray-200 rounded-lg p-4">
+                          <legend className="px-2 text-xs font-semibold text-gray-500">国网电价</legend>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                            {PRICE_PERIODS.map(({ suffix, label }) => (
+                              <React.Fragment key={suffix}>
+                                <div className="space-y-1">
+                                  <label className="text-xs text-gray-600">
+                                    <span className="text-red-500">*</span> 正向电价({label})
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={priceFormData[`gridForward${suffix}` as keyof typeof priceFormData]}
+                                    onChange={(e) =>
+                                      setPriceFormData((p) => ({ ...p, [`gridForward${suffix}`]: e.target.value }))
+                                    }
+                                    placeholder={`请输入正向电价(${label})`}
+                                    className="w-full text-xs border border-gray-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                  />
+                                </div>
+                                <div className="space-y-1">
+                                  <label className="text-xs text-gray-600">
+                                    <span className="text-red-500">*</span> 反向电价({label})
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={priceFormData[`reverse${suffix}` as keyof typeof priceFormData]}
+                                    onChange={(e) =>
+                                      setPriceFormData((p) => ({ ...p, [`reverse${suffix}`]: e.target.value }))
+                                    }
+                                    placeholder={`请输入反向电价(${label})`}
+                                    className="w-full text-xs border border-gray-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                  />
+                                </div>
+                              </React.Fragment>
+                            ))}
+                          </div>
+                        </fieldset>
+                      </>
+                    )}
+
+                    {priceFormData.billingMethod === 'timeOfUse' && (
+                      <fieldset className="border border-gray-200 rounded-lg p-4">
+                        <legend className="px-2 text-xs font-semibold text-gray-500">国网电价</legend>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                          {PRICE_PERIODS.map(({ suffix, label }) => (
+                            <React.Fragment key={`forward-${suffix}`}>
+                              <div className="space-y-1">
+                                <label className="text-xs text-gray-600">
+                                  <span className="text-red-500">*</span> 正向电价({label})
+                                </label>
+                                <input
+                                  type="text"
+                                  value={priceFormData[`gridForward${suffix}` as keyof typeof priceFormData]}
+                                  onChange={(e) =>
+                                    setPriceFormData((p) => ({ ...p, [`gridForward${suffix}`]: e.target.value }))
+                                  }
+                                  placeholder={`请输入正向电价(${label})`}
+                                  className="w-full text-xs border border-gray-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <label className="text-xs text-gray-600">
+                                  <span className="text-red-500">*</span> 正向折扣({label})
+                                </label>
+                                <div className="relative">
+                                  <input
+                                    type="text"
+                                    value={priceFormData[`forwardDiscount${suffix}` as keyof typeof priceFormData]}
+                                    onChange={(e) =>
+                                      setPriceFormData((p) => ({ ...p, [`forwardDiscount${suffix}`]: e.target.value }))
+                                    }
+                                    placeholder={`请输入正向折扣(${label})`}
+                                    className="w-full text-xs border border-gray-200 rounded px-3 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                  />
+                                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">%</span>
+                                </div>
+                              </div>
+                            </React.Fragment>
+                          ))}
+                          {PRICE_PERIODS.map(({ suffix, label }) => (
+                            <React.Fragment key={`reverse-${suffix}`}>
+                              <div className="space-y-1">
+                                <label className="text-xs text-gray-600">
+                                  <span className="text-red-500">*</span> 反向电价({label})
+                                </label>
+                                <input
+                                  type="text"
+                                  value={priceFormData[`reverse${suffix}` as keyof typeof priceFormData]}
+                                  onChange={(e) =>
+                                    setPriceFormData((p) => ({ ...p, [`reverse${suffix}`]: e.target.value }))
+                                  }
+                                  placeholder={`请输入反向电价(${label})`}
+                                  className="w-full text-xs border border-gray-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <label className="text-xs text-gray-600">
+                                  <span className="text-red-500">*</span> 反向折扣({label})
+                                </label>
+                                <div className="relative">
+                                  <input
+                                    type="text"
+                                    value={priceFormData[`reverseDiscount${suffix}` as keyof typeof priceFormData]}
+                                    onChange={(e) =>
+                                      setPriceFormData((p) => ({ ...p, [`reverseDiscount${suffix}`]: e.target.value }))
+                                    }
+                                    placeholder={`请输入反向折扣(${label})`}
+                                    className="w-full text-xs border border-gray-200 rounded px-3 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                  />
+                                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">%</span>
+                                </div>
+                              </div>
+                            </React.Fragment>
+                          ))}
+                        </div>
+                      </fieldset>
+                    )}
+                  </>
+                )}
+              </div>
+
+              <div className="px-6 py-4 border-t border-gray-100 flex justify-center gap-4 flex-shrink-0">
+                <button
+                  onClick={() => setIsPriceFormModalOpen(false)}
+                  className="px-8 py-2 border border-gray-200 text-gray-600 text-xs font-bold rounded hover:bg-gray-50 transition-colors"
+                >
+                  取消
+                </button>
+                <button
+                  onClick={savePriceForm}
+                  disabled={!priceFormData.billingMethod}
+                  className="px-8 py-2 bg-blue-600 text-white text-xs font-bold rounded hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   保存
                 </button>
